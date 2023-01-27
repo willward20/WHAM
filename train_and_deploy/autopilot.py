@@ -6,21 +6,20 @@ from torchvision.io import read_image
 from torchvision.transforms import ToTensor, Resize
 import torch
 from cnn_network import cnn_network
-#from neural_network_class import NeuralNetwork
 from adafruit_servokit import ServoKit
-import json ###################################################################################################################
+import json
 import time
 
 #pca.frequency = 50
 kit = ServoKit(channels=16)
 
-################################################################################################################################
+
 # Load in configuration constants for throttle and steering
 f = open('config.json')
 data = json.load(f)
 steering_trim = data['steering_trim']
 throttle_lim = data['throttle_trim']
-################################################################################################################################
+
 
 # Load CNN model
 model = cnn_network()
@@ -55,9 +54,9 @@ while True:
     if throttle * throttle_lim < -100:
         throttle = -1
     print("steering: ", steering, "     throttle: ", throttle)
-    motor.drive(throttle * throttle_lim) ########################################### I used the json file ##################################
-    #print("motor: ", throttle * throttle_lim) ###################################### I used the json file ##################################
-    ang = 90 * (1 + steering) + steering_trim ###################################### I used the json file ##################################
+    motor.drive(throttle * throttle_lim) 
+    #print("motor: ", throttle * throttle_lim) 
+    ang = 90 * (1 + steering) + steering_trim 
     if ang > 180:
         ang = 180
     elif ang < 0:
