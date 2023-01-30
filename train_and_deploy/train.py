@@ -11,31 +11,14 @@ import torch.nn.functional as F
 from torch.utils.data import DataLoader, Dataset, random_split
 from torchvision.io import read_image
 import matplotlib.pyplot as plt
-
+from cnn_network import cnn_network
+from resnet18_class import Resnet18
 
 DEVICE = torch.device("cuda")
-
 
 #############################################
 # Class Definitions
 #############################################
-
-# Class defining the neural network structure
-class NeuralNetwork(nn.Module):
-    def __init__(self):
-        super().__init__()
-        self.conv1 = nn.Conv2d(3, 6, 3)
-        self.conv2 = nn.Conv2d(6, 12, 3)
-        self.fc1 = nn.Linear(3*640*480, 120)
-        self.fc2 = nn.Linear(120, 84)
-        self.fc3 = nn.Linear(84, 2)
-
-    def forward(self, x):
-        x = torch.flatten(x, 1)
-        x = F.relu(self.fc1(x))
-        x = F.relu(self.fc2(x))
-        x = self.fc3(x)
-        return x
 
 # Class for creating a dataset from our collected data
 class CustomImageDataset(Dataset):
@@ -167,10 +150,10 @@ train_dataloader = DataLoader(train_data, batch_size=100)
 test_dataloader = DataLoader(test_data, batch_size=100)
 epochs = 5
 
-
-
 # Initialize the model
-model = NeuralNetwork().to(DEVICE)
+input_shape = (100, 3, image_size,image_size)
+model = ResNet18(input_shape=input_shape).to(DEVICE)
+
 loss_fn = nn.MSELoss()
 optimizer = torch.optim.Adam(model.parameters(), lr= 0.0001)
 
@@ -201,7 +184,7 @@ print("Test loss length: ", len_test_loss)
 epochs_array = list(range(1, epochs+1))
 print(epochs_array)
 
-graph_data(epochs_array, train_loss, test_loss, "TEST", "test.jpg")
+graph_data(epochs_array, train_loss, test_loss, "Resnet18", "resnet18_01-29.jpg")
 
 
 """
@@ -216,5 +199,5 @@ print(pred)
 """
 
 # Save the model
-torch.save(model.state_dict(), "TEST.pth")
-print("Saved PyTorch Model State to TEST.pth")
+torch.save(model.state_dict(), "resnet18_01-29.pth")
+print("Saved PyTorch Model State to resnet18_01-29.pth")
