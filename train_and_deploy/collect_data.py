@@ -85,6 +85,7 @@ while True:
         time.sleep(0.1)
     
     if Record_data == 1:
+        #TODO change i with a unique id  using uuid
         cv.imwrite(image_dir + str(i)+'.jpg', frame) # changed frame to gray
         # save labels
         label = [str(i)+'.jpg'] + list(action)

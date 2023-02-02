@@ -2,9 +2,13 @@ import pytorch_lightning as pl
 import torch.nn as nn
 import torch
 import torchmetrics
-import torch.nn.functional as F
 from torchvision import models
 from torchvision import transforms
+
+"""
+Convolutional neural network used by donkey car. 
+Github link: https://github.com/autorope/donkeycar/blob/main/donkeycar/parts/pytorch/ResNet18.py
+"""
 
 image_size = 300
 
