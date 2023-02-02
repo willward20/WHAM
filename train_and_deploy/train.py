@@ -1,20 +1,32 @@
+# %%
 """
 Template for training data with a NN model.
 """
 import os
-import statistics
 import numpy as np
 import pandas as pd
 import torch
 import torch.nn as nn
-import torch.nn.functional as F
 from torch.utils.data import DataLoader, Dataset, random_split
 from torchvision.io import read_image
 import matplotlib.pyplot as plt
-from cnn_network import cnn_network
-from resnet18_class import Resnet18
+from resnet18_class import ResNet18
+from tqdm.notebook import tqdm
 
-DEVICE = torch.device("cuda")
+# %%
+if torch.cuda.is_available():
+    # Use GPU
+    device = torch.device("cuda")
+    print('CUDA is installed and in use!')
+else:
+    # Use CPU only
+    device = torch.device("cpu")
+    print('CUDA is not installed, using CPU instead.')
+
+# %%
+
+image_size = 300
+
 
 #############################################
 # Class Definitions
@@ -33,18 +45,18 @@ class CustomImageDataset(Dataset):
 
     def __getitem__(self, idx):
         img_path = os.path.join(self.img_dir, self.img_labels.iloc[idx, 0])
-        image = read_image(img_path) / 255 
-        #print(image.float().size())
+        image = read_image(img_path) / 255
+        # print(image.float().size())
         steering = self.img_labels.iloc[idx, 1].astype(np.float32)
         throttle = self.img_labels.iloc[idx, 2].astype(np.float32)
         if self.transform:
             image = self.transform(image)
-        #if self.target_transform:
+        # if self.target_transform:
         #    label = self.target_transform(label)
         return image.float(), steering, throttle
 
 
-###############################################
+# %%
 # Function definitions
 ###############################################
 
@@ -52,17 +64,16 @@ class CustomImageDataset(Dataset):
 def train(dataloader, model, loss_fn, optimizer):
     num_batches = len(dataloader.dataset)
     model.train()
-    
+
     train_loss = 0.0
 
-
     for batch, (X, steering, throttle) in enumerate(dataloader):
-        #Combine steering and throttle into one tensor (2 columns, X rows)
-        y = torch.stack((steering, throttle), -1) 
-        #y = y.float()
+        # Combine steering and throttle into one tensor (2 columns, X rows)
+        y = torch.stack((steering, throttle), -1)
+        # y = y.float()
 
-        X, y = X.to(DEVICE), y.to(DEVICE)
-        #print("Size X: ", X.size()) # torch.Size([BATCHSIZE, 3, 480, 640])
+        X, y = X.to(device), y.to(device)
+        # print("Size X: ", X.size()) # torch.Size([BATCHSIZE, 3, 480, 640])
 
         # Compute prediction error
         pred = model(X)  # forward propagation
@@ -70,46 +81,46 @@ def train(dataloader, model, loss_fn, optimizer):
         optimizer.zero_grad()  # zero previous gradient
         loss.backward()  # back propagatin
         optimizer.step()  # update parameters
-        
-        #if batch % 10 == 0:
-        #    loss, current = loss.item(), batch * len(X)
-        #    print(f"Train Loss: {loss:>7f}")
-        train_loss += loss.item()
-    #print("Average train loss: ", statistics.mean(train_loss))
-    return train_loss/num_batches
 
-        
+        if batch % 2 == 0:
+            loss, current = loss.item(), batch * len(X)
+            print(f"Train Loss: {loss:>7f}")
+            train_loss += loss
+    # print("Average train loss: ", statistics.mean(train_loss))
+    return train_loss / num_batches
+
+
+# %%
 # Define a test function to evaluate model performance
 def test(dataloader, model, loss_fn):
-    #size = len(dataloader.dataset)
+    # size = len(dataloader.dataset)
     num_batches = len(dataloader)
     model.eval()
     test_loss = 0.0
     with torch.no_grad():
         for X, steering, throttle in dataloader:
-
-            #Combine steering and throttle into one tensor (2 columns, X rows)
-            y = torch.stack((steering, throttle), -1) 
+            # Combine steering and throttle into one tensor (2 columns, X rows)
+            y = torch.stack((steering, throttle), -1)
             y = y.float()
-            
-            X, y = X.to(DEVICE), y.to(DEVICE)
+
+            X, y = X.to(device), y.to(device)
 
             pred = model(X)
             loss = loss_fn(pred, y).item()
-            #print(f"Test Loss: {loss:>7f}")
+            # print(f"Test Loss: {loss:>7f}")
             test_loss += loss
-            #accuracy += (pred.argmax(1) == y).type(torch.float).sum().item()
-    #avg_loss = statistics.mean(test_loss)
-    #print(f"Test Error: Avg loss: {avg_loss:>8f} \n")
+            # accuracy += (pred.argmax(1) == y).type(torch.float).sum().item()
+    # avg_loss = statistics.mean(test_loss)
+    # print(f"Test Error: Avg loss: {avg_loss:>8f} \n")
 
-    return test_loss/num_batches
+    return test_loss / num_batches
 
 
+# %%
 # Graph the test and train data
 def graph_data(x, train, test, TITLE, FILENAME):
-
     fig = plt.figure()
-    axs = fig.add_subplot(1,1,1)
+    axs = fig.add_subplot(1, 1, 1)
 
     plt.plot(x, train, color='r', label="Training Loss")
     plt.plot(x, test, color='b', label='Testing Loss')
@@ -122,7 +133,7 @@ def graph_data(x, train, test, TITLE, FILENAME):
     return
 
 
-
+# %%
 ############################################################################
 #           M         M        A        IIIIIII     N        N             #
 #           M M     M M       A A          I        N  N     N             # 
@@ -133,71 +144,62 @@ def graph_data(x, train, test, TITLE, FILENAME):
 
 
 # Create a dataset
-annotations_file = "labels_edited.csv"  # the name of the csv file
-img_dir = "images_edited"  # the name of the folder with all the images in it
+annotations_file = "./data2023-01-27-14-17/labels.csv"  # the name of the csv file
+img_dir = "./data2023-01-27-14-17/images"  # the name of the folder with all the images in it
 collected_data = CustomImageDataset(annotations_file, img_dir)
 print("data length: ", len(collected_data))
 
 # Define the size for train and test data
 train_data_len = len(collected_data)
-train_data_size = round(train_data_len*0.9)
-test_data_size = round(train_data_len*0.1) 
+train_data_size = round(train_data_len * 0.9)
+test_data_size = round(train_data_len * 0.1)
 print("len and train and test: ", train_data_len, " ", train_data_size, " ", test_data_size)
 
 # Load the datset (split into train and test)
 train_data, test_data = random_split(collected_data, [train_data_size, test_data_size])
 train_dataloader = DataLoader(train_data, batch_size=100)
 test_dataloader = DataLoader(test_data, batch_size=100)
-epochs = 5
+epochs = 10
 
 # Initialize the model
-input_shape = (100, 3, image_size,image_size)
-model = ResNet18(input_shape=input_shape).to(DEVICE)
+input_shape = (100, 10, image_size, image_size)
+model = ResNet18(input_shape=input_shape).to(device)
 
 loss_fn = nn.MSELoss()
-optimizer = torch.optim.Adam(model.parameters(), lr= 0.0001)
+optimizer = torch.optim.Adam(model.parameters(), lr=0.0001)
 
 # Optimize the model
 train_loss = []
 test_loss = []
-for t in range(epochs):
-    print(f"Epoch {t+1}\n-------------------------------")
-    training_loss = train(train_dataloader, model, loss_fn, optimizer)
-    testing_loss = test(test_dataloader, model, loss_fn)
-    print("average training loss: ", training_loss)
-    print("average testing loss: ", testing_loss)
-    # save values
-    train_loss.append(training_loss)
-    test_loss.append(testing_loss)   
+pbar = tqdm(range(epochs))
+for t in pbar:
+    pbar.set_description('epochs {}'.format(t + 1))
+    try:
+        training_loss = train(train_dataloader, model, loss_fn, optimizer)
+        testing_loss = test(test_dataloader, model, loss_fn)
+        print("average training loss: ", training_loss)
+        print("average testing loss: ", testing_loss)
+        # save values
+        train_loss.append(training_loss)
+        test_loss.append(testing_loss)
+    except Exception as e:
+        print(e)
 
 print(f"Optimize Done!")
 
-
-#print("final test lost: ", test_loss[-1])
+# print("final test lost: ", test_loss[-1])
 len_train_loss = len(train_loss)
 len_test_loss = len(test_loss)
 print("Train loss length: ", len_train_loss)
 print("Test loss length: ", len_test_loss)
 
-
 # create array for x values for plotting train
-epochs_array = list(range(1, epochs+1))
+epochs_array = list(range(1, epochs + 1))
 print(epochs_array)
 
-graph_data(epochs_array, train_loss, test_loss, "Resnet18", "resnet18_01-29.jpg")
-
-
-"""
-# Load an image from the dataset and make a prediction
-image = read_image('images/200.jpg').to(DEVICE)  # read image to tensor
-image = (image.float() / 255 ) # convert to float and standardize between 0 and 1
-print("loaded image after divide and float: ", image.size())
-image = image.unsqueeze(dim=0) # add an extra dimension that is needed in order to make a prediction
-print("loaded image after unsqueeze: ", image.size())
-pred = model(image)
-print(pred)
-"""
+# %%
+graph_data(epochs_array, train_loss, test_loss, "Resnet18", "resnet18_01-27-14-17.jpg")
 
 # Save the model
-torch.save(model.state_dict(), "resnet18_01-29.pth")
-print("Saved PyTorch Model State to resnet18_01-29.pth")
+torch.save(model.state_dict(), "resnet18_01-27-14-17.pth")
+print("Saved PyTorch Model State to resnet18_01-27-14-17.pth")
