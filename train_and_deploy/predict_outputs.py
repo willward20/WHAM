@@ -1,6 +1,7 @@
 # Load an image from the dataset and make a prediction
 from torchvision.io import read_image
 from resnet18_class import ResNet18
+from train import device
 
 image_size = 300
 input_shape = (100, 10, image_size, image_size)
