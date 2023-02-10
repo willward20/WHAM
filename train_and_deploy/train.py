@@ -7,11 +7,13 @@ import numpy as np
 import pandas as pd
 import torch
 import torch.nn as nn
+import  torchvision.transforms.functional as fn
 from torch.utils.data import DataLoader, Dataset, random_split
 from torchvision.io import read_image
 import matplotlib.pyplot as plt
-from resnet18_class import ResNet18
-from tqdm.notebook import tqdm
+# from resnet18_class import ResNet18
+from cnn_network import cnn_network
+from tqdm import tqdm
 
 # %%
 if torch.cuda.is_available():
@@ -25,7 +27,7 @@ else:
 
 # %%
 
-image_size = 300
+image_size = 20
 
 
 #############################################
@@ -45,7 +47,10 @@ class CustomImageDataset(Dataset):
 
     def __getitem__(self, idx):
         img_path = os.path.join(self.img_dir, self.img_labels.iloc[idx, 0])
-        image = read_image(img_path) / 255
+        image = read_image(img_path) # / 255
+        image = fn.resize(image, size=[20])
+        # print(image.size())
+        image = image/255
         # print(image.float().size())
         steering = self.img_labels.iloc[idx, 1].astype(np.float32)
         throttle = self.img_labels.iloc[idx, 2].astype(np.float32)
@@ -144,8 +149,8 @@ def graph_data(x, train, test, TITLE, FILENAME):
 
 
 # Create a dataset
-annotations_file = "./data2023-01-27-14-17/labels.csv"  # the name of the csv file
-img_dir = "./data2023-01-27-14-17/images"  # the name of the folder with all the images in it
+annotations_file = "../../data2023-01-27-14-17/labels.csv"  # the name of the csv file
+img_dir = "../../data2023-01-27-14-17/images"  # the name of the folder with all the images in it
 collected_data = CustomImageDataset(annotations_file, img_dir)
 print("data length: ", len(collected_data))
 
@@ -162,8 +167,8 @@ test_dataloader = DataLoader(test_data, batch_size=100)
 epochs = 10
 
 # Initialize the model
-input_shape = (100, 10, image_size, image_size)
-model = ResNet18(input_shape=input_shape).to(device)
+# input_shape = (100, 10, image_size, image_size)
+model = cnn_network()
 
 loss_fn = nn.MSELoss()
 optimizer = torch.optim.Adam(model.parameters(), lr=0.0001)
@@ -198,8 +203,8 @@ epochs_array = list(range(1, epochs + 1))
 print(epochs_array)
 
 # %%
-graph_data(epochs_array, train_loss, test_loss, "Resnet18", "resnet18_01-27-14-17.jpg")
+graph_data(epochs_array, train_loss, test_loss, "CNN", "size20_cnn_01-27-14-17.jpg")
 
 # Save the model
-torch.save(model.state_dict(), "resnet18_01-27-14-17.pth")
-print("Saved PyTorch Model State to resnet18_01-27-14-17.pth")
+torch.save(model.state_dict(), "size20_cnn_01-27-14-17.pth")
+print("Saved PyTorch Model State to size20_cnn_01-27-14-17.pth")

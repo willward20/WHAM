@@ -2,16 +2,16 @@ import torch.nn as nn
 import torch
 import torch.nn.functional as F
 
-image_size = 300
+image_size = 20
 
 class cnn_network(nn.Module):
     def __init__(self):
         super().__init__()
         self.conv1 = nn.Conv2d(3, 6, 5)  # (300 - 5 + 0) / 1 + 1 = 296 --> 6 x 296 x 296
         self.conv2 = nn.Conv2d(6, 12, 5)  # (296 - 5) + 1 = 292 --> 12 x 292 x 292
-        self.fc1 = nn.Linear(12 * 292 * 292, 120)
-        self.fc2 = nn.Linear(120, 84)
-        self.fc3 = nn.Linear(84, 2)
+        self.fc1 = nn.Linear(12 * 12 * 12, 9) # changed from 292,120 to 12,9
+        self.fc2 = nn.Linear(9, 4) #84
+        self.fc3 = nn.Linear(4, 2)
 
     def forward(self, x):  # this defines the order that layers are executed
         x = F.relu(self.conv1(x))  # conv1 --> relu activation
