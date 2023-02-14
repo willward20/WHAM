@@ -1,10 +1,16 @@
+##################################################################
+# Program Name: collect_data.py
+# Contributors: 
+# 
+#  
+###################################################################
+
 #!/usr/bin/python3
 import os
 import cv2 as cv
 #from vidstab.VidStab import VidStab
 from adafruit_servokit import ServoKit
 import motor
-import RPi.GPIO as GPIO
 import pygame
 import csv
 from datetime import datetime
@@ -69,7 +75,7 @@ while True:
     print(throttle*throttle_lim, ang)
     
     ##########################################################################################################################################
-    action = [steer, throttle] # this MUST be [steering, throttle] because that's the order that train.py expects (originaly it was reversed)
+    action = [steer, throttle] # this MUST be [steer, throttle] because that's the order that train.py expects (originaly it was reversed)
     ##########################################################################################################################################
 
     # print(f"action: {action}") # debug

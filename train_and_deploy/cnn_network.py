@@ -18,6 +18,22 @@ import torch.nn.functional as F
 #################################################################################
 
 
+class dense_net(nn.Module):
+    def __init__(self):
+        super().__init__()
+        self.fc1 = nn.Linear(3*300*300, 120)
+        self.fc2 = nn.Linear(120, 84)
+        self.fc3 = nn.Linear(84, 2)
+
+    def forward(self, x):
+        x = torch.flatten(x, 1)
+        x = F.relu(self.fc1(x))
+        x = F.relu(self.fc2(x))
+        x = self.fc3(x)
+        return x
+
+
+
 class cnn_network(nn.Module):
 
     # Define CNN Architecture

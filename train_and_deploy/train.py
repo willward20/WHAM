@@ -16,39 +16,12 @@ import torch.nn.functional as F
 from torch.utils.data import DataLoader, Dataset, random_split
 from torchvision.io import read_image
 import matplotlib.pyplot as plt
+import cnn_network
 
 
 # Designate processing unit for CNN training
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 print(f"Using {DEVICE} device")
-
-
-class NeuralNetwork(nn.Module):
-
-    # Define CNN Architecture
-
-    def __init__(self):
-        super().__init__()
-
-        # input image size: 300 x 300
-        # input channel size: 3 (RGB)
-        # conv layer output size = [(input_width - kernel + 2*padding) / stride] + 1
-        # nn.Conv2d(input_channels, output_channels, kernel)
-
-        self.conv1 = nn.Conv2d(3, 6, 5) # (300 - 5 + 0) / 1 + 1 = 296 --> 6 x 296 x 296
-        self.conv2 = nn.Conv2d(6, 12, 5) # (296 - 5) + 1 = 292 --> 12 x 292 x 292
-        self.fc1 = nn.Linear(12*292*292, 120)
-        self.fc2 = nn.Linear(120, 84)
-        self.fc3 = nn.Linear(84, 2)
-
-    def forward(self, x): # this defines the order that layers are executed
-        x = F.relu(self.conv1(x)) # conv1 --> relu activation
-        x = F.relu(self.conv2(x)) # conv2 --> relu activation
-        x = torch.flatten(x, 1)   # flattens tensor, except the batch dimension
-        x = F.relu(self.fc1(x))   # fc1 --> relu activation
-        x = F.relu(self.fc2(x))   # fc2 --> relu activation
-        x = self.fc3(x)           # fc3 --> two outputs (steering, throttle)
-        return x
 
 
 class CustomImageDataset(Dataset): 
@@ -163,8 +136,8 @@ def graph_data(x, train, test, TITLE, FILENAME):
 if __name__ == '__main__':
 
     # Create a dataset
-    annotations_file = "data2023-02-02-14-59/labels.csv"  # the name of the csv file
-    img_dir = "data2023-02-02-14-59/images"  # the name of the folder with all the images in it
+    annotations_file = "labels.csv"  # the name of the csv file
+    img_dir = "images"  # the name of the folder with all the images in it
     collected_data = CustomImageDataset(annotations_file, img_dir)
     print("data length: ", len(collected_data))
 
@@ -183,7 +156,7 @@ if __name__ == '__main__':
 
 
     # Initialize the model
-    model = NeuralNetwork().to(DEVICE)
+    model = cnn_network.dense_net().to(DEVICE) # choose the architecture class from cnn_network.py
     loss_fn = nn.MSELoss()
     optimizer = torch.optim.Adam(model.parameters(), lr= 0.0001)
 
@@ -214,7 +187,7 @@ if __name__ == '__main__':
     epochs_array = list(range(1, epochs+1))
     print(epochs_array)
 
-    graph_data(epochs_array, train_loss, test_loss, "TEST", "test.jpg")
+    graph_data(epochs_array, train_loss, test_loss, "dense_data2023-02-10-13-41", "dense_data2023-02-10-13-41.jpg")
 
 
     """
@@ -229,5 +202,5 @@ if __name__ == '__main__':
     """
 
     # Save the model
-    torch.save(model.state_dict(), "TEST.pth")
-    print("Saved PyTorch Model State to TEST.pth")
+    torch.save(model.state_dict(), "dense_data2023-02-10-13-41.pth")
+    print("Saved PyTorch Model State to data2023-02-10-13-41.pth")
