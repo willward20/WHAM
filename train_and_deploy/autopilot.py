@@ -1,11 +1,17 @@
+##################################################################
+# Program Name: autopilot.py
+# Contributors: 
+# 
+# Deploy trained neural network for self driving 
+###################################################################
+
+
 #!/usr/bin/python3
 import cv2 as cv
-import servo1 as servo
 import motor
-from torchvision.io import read_image
 from torchvision.transforms import ToTensor, Resize
 import torch
-from cnn_network import cnn_network
+import cnn_network
 from adafruit_servokit import ServoKit
 import json
 import time
@@ -22,19 +28,19 @@ throttle_lim = data['throttle_trim']
 
 
 # Load CNN model
-model = cnn_network()
-model.load_state_dict(torch.load("indoor_buckets_combined.pth", map_location=torch.device('cpu')))
+model = cnn_network.dense_net()
+model.load_state_dict(torch.load("dense_data2023-02-10-13-41.pth", map_location=torch.device('cpu')))
 
 # Setup Transforms
 img2tensor = ToTensor()
-resize = Resize(size=(60,80))
+resize = Resize(size=(300,300))
 
 # Create video capturer
 cap = cv.VideoCapture(0) #video capture from 0 or -1 should be the first camera plugged in. If passing 1 it would select the second camera
 # cap.set(cv.CAP_PROP_FPS, 10)
 
-times = [] # array to hold the elapsed time between each recieved frame
-start_time = time.time()
+#times = [] # array to hold the elapsed time between each recieved frame
+#start_time = time.time()
 
 while True:
     ret, frame = cap.read()   
@@ -64,9 +70,9 @@ while True:
     kit.servo[0].angle = ang
     #print("ang: ", ang)
 
-    elapsed_time = time.time() - start_time
-    times.append(elapsed_time)
-    start_time = time.time()
+    #elapsed_time = time.time() - start_time
+    #times.append(elapsed_time)
+    #start_time = time.time()
     #print("elapsed time: ", elapsed_time)
     #print("Average Recieved Image Rate: ", sum(times) / len(times))
 
