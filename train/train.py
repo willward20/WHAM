@@ -9,7 +9,7 @@ from torchvision.io import read_image
 import matplotlib.pyplot as plt
 
 
-class CustomImageDataset(Dataset):
+class AutopilotDataset(Dataset):
     def __init__(self, annotations_file, img_dir, transform=None):
         self.img_labels = pd.read_csv(annotations_file)
         self.img_dir = img_dir
@@ -22,12 +22,50 @@ class CustomImageDataset(Dataset):
         img_path = os.path.join(self.img_dir, self.img_labels.iloc[idx, 0])
         image = read_image(img_path) / 255.
         speed = self.img_labels.iloc[idx, 1].astype(np.float32)
-        ang = self.img_labels.iloc[idx, 2].astype(np.float32)
+        angle = self.img_labels.iloc[idx, 2].astype(np.float32)
         if self.transform:
             image = self.transform(image)
-        return image.float(), speed, ang
+        return image.float(), speed, angle
 
 
+labels_path = "/home/pbd0/playground/wham_buggy/train/data/20230214_2155/labels.csv"
+image_dir = "/home/pbd0/playground/wham_buggy/train/data/20230214_2155/images/"
+dataset = AutopilotDataset(labels_path, image_dir)
+# print("data length: ", len(dataset))
+# Define the size for train and test data
+train_data_len = len(dataset)
+train_data_size = round(train_data_len*0.9)
+test_data_size = round(train_data_len*0.1)
+# print("len and train and test: ", train_data_len, " ", train_data_size, " ", test_data_size)
+# Load the datset (split into train and test)
+train_data, test_data = random_split(dataset, [train_data_size, test_data_size])
+train_dataloader = DataLoader(train_data, batch_size=128)
+test_dataloader = DataLoader(test_data, batch_size=128)
+# image_sample, speed_sample, angle_sample = next(iter(train_dataloader))
+
+
+# Get cpu or gpu device for training.
+device = "cuda" if torch.cuda.is_available() else "mps" if torch.backends.mps.is_available() else "cpu"
+print(f"Using {device} device")
+class DenseNetwork(nn.Module):
+    def __init__(self):
+        super().__init__()
+        self.flatten = nn.Flatten()
+        self.linear_relu_stack = nn.Sequential(
+            nn.Linear(300*300*3, 128),
+            nn.ReLU(),
+            nn.Linear(128, 128),
+            nn.ReLU(),
+            nn.Linear(128, 2)
+        )
+
+    def forward(self, x):
+        x = self.flatten(x)
+        logits = self.linear_relu_stack(x)
+        return logits
+
+model = DenseNetwork().to(device)
+print(model)
 # DEVICE = torch.device("cuda")
 # class NeuralNetwork(nn.Module):
 #     def __init__(self):
@@ -129,22 +167,6 @@ class CustomImageDataset(Dataset):
 
 
 # Create a dataset
-annotations_file = "/home/pbd0/playground/wham_buggy/train/data/20230214_2155/labels.csv"
-img_dir = "/home/pbd0/playground/wham_buggy/train/data/20230214_2155/images/"
-autopilot_dataset = CustomImageDataset(annotations_file, img_dir)
-print("data length: ", len(autopilot_dataset))
-
-# Define the size for train and test data
-train_data_len = len(autopilot_dataset)
-train_data_size = round(train_data_len*0.9)
-test_data_size = round(train_data_len*0.1) 
-print("len and train and test: ", train_data_len, " ", train_data_size, " ", test_data_size)
-
-# Load the datset (split into train and test)
-train_data, test_data = random_split(autopilot_dataset, [train_data_size, test_data_size])
-train_dataloader = DataLoader(train_data, batch_size=128)
-test_dataloader = DataLoader(test_data, batch_size=128)
-train_features, train_labels = next(iter(train_dataloader))
 
 # Initialize the model
 # epochs = 5
