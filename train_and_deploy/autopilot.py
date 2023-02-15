@@ -23,7 +23,7 @@ throttle_lim = data['throttle_trim']
 
 # Load CNN model
 model = cnn_network()
-model.load_state_dict(torch.load("indoor_buckets_combined.pth", map_location=torch.device('cpu')))
+model.load_state_dict(torch.load("dense_data2023-02-10-13-41.pth", map_location=torch.device('cpu')))
 
 # Setup Transforms
 img2tensor = ToTensor()
