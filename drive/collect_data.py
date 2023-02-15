@@ -31,7 +31,7 @@ cv.startWindowThread()
 cam = cv.VideoCapture(0)
 cam.set(cv.CAP_PROP_FPS, 30)
 # create data storage
-image_dir = '/home/pbd0/playground/wham_buggy/train_and_deploy/data/' + datetime.now().strftime("%Y%m%d_%H%M") + '/images/'
+image_dir = '/home/pbd0/playground/wham_buggy/train/data/' + datetime.now().strftime("%Y%m%d_%H%M") + '/images/'
 if not os.path.exists(image_dir):
     try:
         os.makedirs(image_dir)

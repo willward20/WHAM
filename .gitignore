@@ -1,5 +1,5 @@
 # Dataset
-data*/
+data/
 
 # Pytorch model
 *.pth
