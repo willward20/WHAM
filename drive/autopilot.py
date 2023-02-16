@@ -18,7 +18,7 @@ engine = PhaseEnableMotor(phase=19, enable=26)
 kit = ServoKit(channels=8, address=0x40)
 steer = kit.servo[0]
 MAX_THROTTLE = 0.32
-STEER_CENTER = 100
+STEER_CENTER = 87
 MAX_STEER = 50
 engine.stop()
 steer.angle = STEER_CENTER
@@ -72,7 +72,7 @@ class DenseNetwork(nn.Module):
 
 
 autopilot = ConvNetwork()
-autopilot.load_state_dict(torch.load("/home/pbd0/playground/wham_buggy/train/models/conv_home-20230215_2252.pth", map_location=torch.device('cpu')))
+autopilot.load_state_dict(torch.load("/home/pbd0/playground/wham_buggy/train/models/conv_soccer-20230217_1426.pth", map_location=torch.device('cpu')))
 to_tensor = transforms.ToTensor()
 
 
