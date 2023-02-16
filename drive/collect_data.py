@@ -17,8 +17,8 @@ engine = PhaseEnableMotor(phase=19, enable=26)
 kit = ServoKit(channels=8, address=0x40)
 steer = kit.servo[0]
 MAX_THROTTLE = 0.32
-STEER_CENTER = 100
-MAX_STEER = 50
+STEER_CENTER = 90
+MAX_STEER = 60
 engine.stop()
 steer.angle = STEER_CENTER
 # init jotstick controller
@@ -79,8 +79,8 @@ try:
                     engine.stop()
                 ang = STEER_CENTER - MAX_STEER * ax0_val
                 steer.angle = ang  # drive servo
-            action = [ax0_val, ax4_val]
-            print(f"engine speed: {vel}, steering angle: {ang}")
+                action = [ax4_val, ax0_val]  # vel, ang
+                print(f"engine speed: {vel}, steering angle: {ang}")
         if record_data:
             image = cv.resize(frame, (200, 200))
             cv.imwrite(image_dir + str(frame_count)+'.jpg', image)  # save image
