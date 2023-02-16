@@ -46,7 +46,7 @@ class DenseNetwork(nn.Module):
 
 
 autopilot = DenseNetwork()
-# autopilot.load_state_dict(torch.load("./model2023-02-14-16-28.pth", map_location=torch.device('cpu')))
+autopilot.load_state_dict(torch.load("/home/pbd0/playground/wham_buggy/train/models/home-20230215_2252.pth", map_location=torch.device('cpu')))
 to_tensor = transforms.ToTensor()
 
 
