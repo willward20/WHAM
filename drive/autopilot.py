@@ -8,6 +8,7 @@ import cv2 as cv
 
 import torch
 import torch.nn as nn
+from torchvision import transforms
 
 
 
@@ -21,11 +22,6 @@ STEER_CENTER = 100
 MAX_STEER = 50
 engine.stop()
 steer.angle = STEER_CENTER
-# init jotstick controller
-display.init()
-joystick.init()
-print(f"{joystick.get_count()} joystick connected")
-js = joystick.Joystick(0)
 # init camera
 cv.startWindowThread()
 cam = cv.VideoCapture(0)
@@ -51,48 +47,41 @@ class DenseNetwork(nn.Module):
 
 autopilot = DenseNetwork()
 # autopilot.load_state_dict(torch.load("./model2023-02-14-16-28.pth", map_location=torch.device('cpu')))
+to_tensor = transforms.ToTensor()
 
 
 # MAIN
-# try:
-#     while True:
-#         ret, frame = cam.read()
-#         if not ret:  # check camera
-#             print("No image received!")
-#             engine.stop()
-#             engine.close()
-#             cv.destroyAllWindows()
-#             pygame.quit()
-#             sys.exit()
-#
-#         vel = -np.clip(ax4_val, -MAX_THROTTLE, MAX_THROTTLE)
-#         if vel > 0:  # drive motor
-#             engine.forward(vel)
-#         elif vel < 0:
-#             engine.backward(-vel)
-#         else:
-#             engine.stop()
-#         ang = STEER_CENTER - MAX_STEER * ax0_val
-#         steer.angle = ang  # drive servo
-#         action = [ax0_val, ax4_val]
-#         print(f"engine speed: {vel}, steering angle: {ang}")
-#         if record_data:
-#             image = cv.resize(frame, (200, 200))
-#             cv.imwrite(image_dir + str(frame_count)+'.jpg', image)  # save image
-#             label = [str(frame_count)+'.jpg'] + list(action)
-#             with open(label_path, 'a+', newline='') as f:
-#                 writer = csv.writer(f)
-#                 writer.writerow(label)  # save labels
-#         if cv.waitKey(1) == ord('q'):
-#             engine.stop()
-#             engine.close()
-#             cv.destroyAllWindows()
-#             pygame.quit()
-#             sys.exit()
-#
-# except KeyboardInterrupt:
-#     engine.stop()
-#     engine.close()
-#     cv.destroyAllWindows()
-#     pygame.quit()
-#     sys.exit()
+try:
+    while True:
+        ret, frame = cam.read()
+        if not ret:  # check camera
+            print("No image received!")
+            engine.stop()
+            engine.close()
+            cv.destroyAllWindows()
+            sys.exit()
+        image = cv.resize(frame, (200, 200))
+        im_tensor = to_tensor(image)
+        pred_ax4, pred_ax0 = autopilot(im_tensor[None, :]).squeeze()
+        vel = -np.clip(float(pred_ax4), -MAX_THROTTLE, MAX_THROTTLE)
+        if vel > 0:  # drive motor
+            engine.forward(vel)
+        elif vel < 0:
+            engine.backward(-vel)
+        else:
+            engine.stop()
+        ang = STEER_CENTER - MAX_STEER * float(pred_ax0)
+        ang = np.clip(ang, STEER_CENTER - MAX_STEER, STEER_CENTER + MAX_STEER)
+        steer.angle = ang  # drive servo
+        print(f"engine speed: {vel}, steering angle: {ang}")
+        if cv.waitKey(1) == ord('q'):
+            engine.stop()
+            engine.close()
+            cv.destroyAllWindows()
+            sys.exit()
+
+except KeyboardInterrupt:
+    engine.stop()
+    engine.close()
+    cv.destroyAllWindows()
+    sys.exit()

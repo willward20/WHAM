@@ -5,12 +5,13 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from torch.utils.data import DataLoader, Dataset, random_split
-from torchvision.io import read_image
+# from torchvision.io import read_image
+from torchvision import transforms
 import matplotlib.pyplot as plt
-
+import cv2 as cv
 
 class AutopilotDataset(Dataset):
-    def __init__(self, annotations_file, img_dir, transform=None):
+    def __init__(self, annotations_file, img_dir, transform=transforms.ToTensor()):
         self.img_labels = pd.read_csv(annotations_file)
         self.img_dir = img_dir
         self.transform = transform
@@ -20,7 +21,8 @@ class AutopilotDataset(Dataset):
 
     def __getitem__(self, idx):
         img_path = os.path.join(self.img_dir, self.img_labels.iloc[idx, 0])
-        image = read_image(img_path) / 255.
+        # image = read_image(img_path) / 255.
+        image = cv.imread(img_path, cv.IMREAD_COLOR)
         speed = self.img_labels.iloc[idx, 1].astype(np.float32)
         angle = self.img_labels.iloc[idx, 2].astype(np.float32)
         if self.transform:
