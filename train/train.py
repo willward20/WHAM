@@ -30,8 +30,8 @@ class AutopilotDataset(Dataset):
         return image.float(), speed, angle
 
 
-labels_path = "/home/pbd0/playground/wham_buggy/train/data/lsca-20230215_1723/labels.csv"
-image_dir = "/home/pbd0/playground/wham_buggy/train/data/lsca-20230215_1723/images/"
+labels_path = "/home/pbd0/playground/wham_buggy/train/data/home-20230215_2252/labels.csv"
+image_dir = "/home/pbd0/playground/wham_buggy/train/data/home-20230215_2252/images/"
 dataset = AutopilotDataset(labels_path, image_dir)
 print("data length: ", len(dataset))
 # Define the size for train and test data
@@ -110,20 +110,23 @@ def test(dataloader, model, loss_fn):
     test_loss /= num_batches
     print(f"Test Error: {test_loss:>8f} \n")
 
+    return test_loss
+
 
 model = DenseNetwork().to(device)
 print(model)
 loss_fn = nn.MSELoss()
 optimizer = torch.optim.Adam(model.parameters(), lr=1e-4)
-epochs = 50
-losses = []
+epochs = 20
+train_losses, test_losses = [], []
 for t in range(epochs):
     print(f"Epoch {t+1}\n-------------------------------")
-    epoch_loss = train(train_dataloader, model, loss_fn, optimizer)
-    losses.append(epoch_loss)
-    test(test_dataloader, model, loss_fn)
+    epoch_loss_train = train(train_dataloader, model, loss_fn, optimizer)
+    train_losses.append(epoch_loss_train)
+    epoch_loss_test = test(test_dataloader, model, loss_fn)
+    test_losses.append(epoch_loss_test)
 print("Done!")
-plt.plot(losses)
+plt.plot(list(range(epochs)), train_losses, '--', list(range(epochs)), test_losses)
 plt.show()
 #
 # """
@@ -138,6 +141,6 @@ plt.show()
 # """
 #
 # Save the model
-model_path = "/home/pbd0/playground/wham_buggy/train/models/lsca-20230215_1723.pth"
+model_path = "/home/pbd0/playground/wham_buggy/train/models/home-20230215_2252.pth"
 torch.save(model.state_dict(), model_path)
 print(f"Saved autopilot model state to {model_path}")
