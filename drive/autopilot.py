@@ -1,84 +1,98 @@
-#!/usr/bin/python3
-import cv2 as cv
+import sys
+import os
+from datetime import datetime
+import numpy as np
 from adafruit_servokit import ServoKit
 from gpiozero import PhaseEnableMotor
-# from torchvision.io import read_image
-# from torchvision.transforms import ToTensor, Resize
+import cv2 as cv
+
 import torch
-from dense_network import DenseNetwork
-import time
+import torch.nn as nn
+
 
 
 # SETUP
+# init engine and steering wheel
 engine = PhaseEnableMotor(phase=19, enable=26)
 kit = ServoKit(channels=8, address=0x40)
 steer = kit.servo[0]
-MAX_THROTTLE = 0.25
-STEER_CENTER = 90
+MAX_THROTTLE = 0.32
+STEER_CENTER = 100
 MAX_STEER = 50
-assert MAX_THROTTLE <= 1
-steer.angle = 90
+engine.stop()
+steer.angle = STEER_CENTER
+# init jotstick controller
+display.init()
+joystick.init()
+print(f"{joystick.get_count()} joystick connected")
+js = joystick.Joystick(0)
+# init camera
+cv.startWindowThread()
+cam = cv.VideoCapture(0)
+cam.set(cv.CAP_PROP_FPS, 30)
+# init autopilot
+class DenseNetwork(nn.Module):
+    def __init__(self):
+        super().__init__()
+        self.flatten = nn.Flatten()
+        self.linear_relu_stack = nn.Sequential(
+            nn.Linear(200*200*3, 128),
+            nn.ReLU(),
+            nn.Linear(128, 128),
+            nn.ReLU(),
+            nn.Linear(128, 2)
+        )
+
+    def forward(self, x):
+        x = self.flatten(x)
+        logits = self.linear_relu_stack(x)
+        return logits
 
 
-# Load in configuration constants for throttle and steering
+autopilot = DenseNetwork()
+# autopilot.load_state_dict(torch.load("./model2023-02-14-16-28.pth", map_location=torch.device('cpu')))
 
 
-# Load CNN model
-model = DenseNetwork()
-model.load_state_dict(torch.load("./model2023-02-14-16-28.pth", map_location=torch.device('cpu')))
-
-# # Setup Transforms
-# img2tensor = ToTensor()
-# resize = Resize(size=(60,80))
+# MAIN
+# try:
+#     while True:
+#         ret, frame = cam.read()
+#         if not ret:  # check camera
+#             print("No image received!")
+#             engine.stop()
+#             engine.close()
+#             cv.destroyAllWindows()
+#             pygame.quit()
+#             sys.exit()
 #
-# # Create video capturer
-# cap = cv.VideoCapture(0) #video capture from 0 or -1 should be the first camera plugged in. If passing 1 it would select the second camera
-# # cap.set(cv.CAP_PROP_FPS, 10)
+#         vel = -np.clip(ax4_val, -MAX_THROTTLE, MAX_THROTTLE)
+#         if vel > 0:  # drive motor
+#             engine.forward(vel)
+#         elif vel < 0:
+#             engine.backward(-vel)
+#         else:
+#             engine.stop()
+#         ang = STEER_CENTER - MAX_STEER * ax0_val
+#         steer.angle = ang  # drive servo
+#         action = [ax0_val, ax4_val]
+#         print(f"engine speed: {vel}, steering angle: {ang}")
+#         if record_data:
+#             image = cv.resize(frame, (200, 200))
+#             cv.imwrite(image_dir + str(frame_count)+'.jpg', image)  # save image
+#             label = [str(frame_count)+'.jpg'] + list(action)
+#             with open(label_path, 'a+', newline='') as f:
+#                 writer = csv.writer(f)
+#                 writer.writerow(label)  # save labels
+#         if cv.waitKey(1) == ord('q'):
+#             engine.stop()
+#             engine.close()
+#             cv.destroyAllWindows()
+#             pygame.quit()
+#             sys.exit()
 #
-# times = [] # array to hold the elapsed time between each recieved frame
-# start_time = time.time()
-#
-# while True:
-#     ret, frame = cap.read()   
-#     if frame is not None:
-#         #cv.imshow('frame', frame)  # debug
-#         frame = cv.resize(frame, (int(frame.shape[1]), int(frame.shape[0])))
-#         img_tensor = img2tensor(frame) # added thi sline to get the colored img 
-#         #print(f"frame size: {frame.shape}")
-#         #gray = cv.cvtColor(frame, cv.COLOR_BGR2GRAY)  # we changed this from b&w to color
-#         #img_tensor = img2tensor(gray)
-#         img_tensor = resize(img_tensor) # I am 90% certain that this line is not needed -- changing the size should not affect predictions
-#         print(img_tensor.shape)
-#     with torch.no_grad():
-#         pred = model(img_tensor.unsqueeze(dim=0)) # This line adds an extra dimension to the image tensor (print shape before and after to observe this effect)
-#     #print(pred)
-#     steering, throttle = pred[0][0].item(), pred[0][1].item()
-#     if throttle * throttle_lim < -100:
-#         throttle = -1
-#     print("steering: ", steering, "     throttle: ", throttle)
-#     motor.drive(throttle * throttle_lim) 
-#     #print("motor: ", throttle * throttle_lim) 
-#     ang = 90 * (1 + steering) + steering_trim 
-#     if ang > 180:
-#         ang = 180
-#     elif ang < 0:
-#         ang = 0
-#     kit.servo[0].angle = ang
-#     #print("ang: ", ang)
-#
-#     elapsed_time = time.time() - start_time
-#     times.append(elapsed_time)
-#     start_time = time.time()
-#     #print("elapsed time: ", elapsed_time)
-#     #print("Average Recieved Image Rate: ", sum(times) / len(times))
-#
-#     if cv.waitKey(1)==ord('q'):
-#         motor.stop()
-#         motor.close()
-#         break
-#
-#
-# # When everything done, release the capture
-# cap.release()
-# cv.destroyAllWindows()
-#         
+# except KeyboardInterrupt:
+#     engine.stop()
+#     engine.close()
+#     cv.destroyAllWindows()
+#     pygame.quit()
+#     sys.exit()
