@@ -46,6 +46,32 @@ test_dataloader = DataLoader(test_data, batch_size=128)
 # image_sample, speed_sample, angle_sample = next(iter(train_dataloader))
 
 
+class ConvNetwork(nn.Module):
+    def __init__(self):
+        super().__init__()
+        self.conv24 = nn.Conv2d(3, 24, kernel_size=(5, 5), stride=(2, 2))
+        self.conv32 = nn.Conv2d(24, 32, kernel_size=(5, 5), stride=(2, 2))
+        self.conv64_5 = nn.Conv2d(32, 64, kernel_size=(5, 5), stride=(2, 2))
+        self.conv64_3 = nn.Conv2d(64, 64, kernel_size=(3, 3), stride=(1, 1))
+        self.fc1 = nn.Linear(64*18*18, 128)
+        self.fc2 = nn.Linear(128, 128)
+        self.fc3 = nn.Linear(128, 2)
+        self.relu = nn.ReLU()
+        self.flatten = nn.Flatten()
+
+    def forward(self, x):
+        x = self.relu(self.conv24(x))  # (200-5)/2+1 = 98
+        x = self.relu(self.conv32(x))  # (98-5)/2+1 = 47
+        x = self.relu(self.conv64_5(x))  # (47-5)/2+1 = 22
+        x = self.relu(self.conv64_3(x))  # 22-3+1 = 20
+        x = self.relu(self.conv64_3(x))  # 20-3+1 = 18
+        x = self.flatten(x)
+        x = self.relu(self.fc1(x))
+        x = self.relu(self.fc2(x))
+        x = self.fc3(x)
+        return x
+
+
 class DenseNetwork(nn.Module):
     def __init__(self):
         super().__init__()
@@ -113,7 +139,8 @@ def test(dataloader, model, loss_fn):
     return test_loss
 
 
-model = DenseNetwork().to(device)
+# model = DenseNetwork().to(device)
+model = ConvNetwork().to(device)
 print(model)
 loss_fn = nn.MSELoss()
 optimizer = torch.optim.Adam(model.parameters(), lr=1e-4)
@@ -141,6 +168,6 @@ plt.show()
 # """
 #
 # Save the model
-model_path = "/home/pbd0/playground/wham_buggy/train/models/home-20230215_2252.pth"
+model_path = "/home/pbd0/playground/wham_buggy/train/models/conv_home-20230215_2252.pth"
 torch.save(model.state_dict(), model_path)
 print(f"Saved autopilot model state to {model_path}")
