@@ -82,7 +82,7 @@ try:
             action = [ax0_val, ax4_val]
             print(f"engine speed: {vel}, steering angle: {ang}")
         if record_data:
-            image = cv.resize(frame, (300, 300))
+            image = cv.resize(frame, (200, 200))
             cv.imwrite(image_dir + str(frame_count)+'.jpg', image)  # save image
             label = [str(frame_count)+'.jpg'] + list(action)
             with open(label_path, 'a+', newline='') as f:

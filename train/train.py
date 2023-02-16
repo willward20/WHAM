@@ -49,7 +49,7 @@ class DenseNetwork(nn.Module):
         super().__init__()
         self.flatten = nn.Flatten()
         self.linear_relu_stack = nn.Sequential(
-            nn.Linear(300*300*3, 128),
+            nn.Linear(200*200*3, 128),
             nn.ReLU(),
             nn.Linear(128, 128),
             nn.ReLU(),
