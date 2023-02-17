@@ -23,11 +23,11 @@ throttle_lim = data['throttle_trim']
 
 # Load CNN model
 model = cnn_network()
-model.load_state_dict(torch.load("size202_cnn_01-27-14-17.pth", map_location=torch.device('cpu')))
+model.load_state_dict(torch.load("lenet_02-15-10-08.pth", map_location=torch.device('cpu')))
 
 # Setup Transforms
 img2tensor = ToTensor()
-resize = Resize(size=(20,20))
+resize = Resize(size=(300,300))
 
 # Create video capturer
 cap = cv.VideoCapture(0) #video capture from 0 or -1 should be the first camera plugged in. If passing 1 it would select the second camera

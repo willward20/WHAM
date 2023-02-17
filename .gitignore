@@ -1,3 +1,5 @@
+*.pyc
+*__pychache__/
 /train_and_deploy/*.pth
 /train_and_deploy/size20_resnet18_01-27-14-17.jpg
 /train_and_deploy/size20_cnn_01-27-14-17.jpg
