@@ -13,7 +13,7 @@ import cv2 as cv
 engine = PhaseEnableMotor(phase=19, enable=26)
 kit = ServoKit(channels=8, address=0x40)
 steer = kit.servo[0]
-MAX_THROTTLE = 0.32
+MAX_THROTTLE = 0.2
 STEER_CENTER = 87
 MAX_STEER = 50
 engine.stop()

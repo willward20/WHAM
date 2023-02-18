@@ -16,7 +16,7 @@ import csv
 engine = PhaseEnableMotor(phase=19, enable=26)
 kit = ServoKit(channels=8, address=0x40)
 steer = kit.servo[0]
-MAX_THROTTLE = 0.32
+MAX_THROTTLE = 0.2
 STEER_CENTER = 87
 MAX_STEER = 50
 engine.stop()
@@ -29,7 +29,7 @@ js = joystick.Joystick(0)
 # init camera
 cv.startWindowThread()
 cam = cv.VideoCapture(0)
-cam.set(cv.CAP_PROP_FPS, 30)
+cam.set(cv.CAP_PROP_FPS, 20)
 # create data storage
 image_dir = '/home/pbd0/playground/wham_buggy/train/data/' + datetime.now().strftime("%Y%m%d_%H%M") + '/images/'
 if not os.path.exists(image_dir):

@@ -17,7 +17,7 @@ from torchvision import transforms
 engine = PhaseEnableMotor(phase=19, enable=26)
 kit = ServoKit(channels=8, address=0x40)
 steer = kit.servo[0]
-MAX_THROTTLE = 0.32
+MAX_THROTTLE = 0.2
 STEER_CENTER = 87
 MAX_STEER = 50
 engine.stop()
@@ -25,7 +25,7 @@ steer.angle = STEER_CENTER
 # init camera
 cv.startWindowThread()
 cam = cv.VideoCapture(0)
-cam.set(cv.CAP_PROP_FPS, 30)
+cam.set(cv.CAP_PROP_FPS, 20)
 # init autopilot
 class ConvNetwork(nn.Module):
     def __init__(self):
@@ -72,7 +72,7 @@ class DenseNetwork(nn.Module):
 
 
 autopilot = ConvNetwork()
-autopilot.load_state_dict(torch.load("/home/pbd0/playground/wham_buggy/train/models/conv_soccer-20230217_1426.pth", map_location=torch.device('cpu')))
+autopilot.load_state_dict(torch.load("/home/pbd0/playground/wham_buggy/train/models/conv_soccer-20230217_1519.pth", map_location=torch.device('cpu')))
 to_tensor = transforms.ToTensor()
 
 
