@@ -3,9 +3,7 @@ import numpy as np
 import pandas as pd
 import torch
 import torch.nn as nn
-import torch.nn.functional as F
 from torch.utils.data import DataLoader, Dataset, random_split
-# from torchvision.io import read_image
 from torchvision import transforms
 import matplotlib.pyplot as plt
 import cv2 as cv
@@ -30,8 +28,8 @@ class AutopilotDataset(Dataset):
         return image.float(), speed, angle
 
 
-labels_path = "/home/pbd0/playground/wham_buggy/train/data/home-20230215_2252/labels.csv"
-image_dir = "/home/pbd0/playground/wham_buggy/train/data/home-20230215_2252/images/"
+labels_path = "/home/pbd0/playground/wham_buggy/train/data/soccer-20230217_1519/labels.csv"
+image_dir = "/home/pbd0/playground/wham_buggy/train/data/soccer-20230217_1519/images/"
 dataset = AutopilotDataset(labels_path, image_dir)
 print("data length: ", len(dataset))
 # Define the size for train and test data
@@ -144,7 +142,7 @@ model = ConvNetwork().to(device)
 print(model)
 loss_fn = nn.MSELoss()
 optimizer = torch.optim.Adam(model.parameters(), lr=1e-4)
-epochs = 20
+epochs = 32
 train_losses, test_losses = [], []
 for t in range(epochs):
     print(f"Epoch {t+1}\n-------------------------------")
@@ -168,6 +166,6 @@ plt.show()
 # """
 #
 # Save the model
-model_path = "/home/pbd0/playground/wham_buggy/train/models/conv_home-20230215_2252.pth"
+model_path = "/home/pbd0/playground/wham_buggy/train/models/conv_soccer-20230217_1519.pth"
 torch.save(model.state_dict(), model_path)
 print(f"Saved autopilot model state to {model_path}")
