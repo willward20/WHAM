@@ -1,9 +1,9 @@
 ##################################################################
 # Program Name: train.py
-# Contributors: 
-# 
+# Contributors:
+#
 # Train an autopilot for autonomous ground vehicle using
-# convolutional neural network and labeled images. 
+# convolutional neural network and labeled images.
 ###################################################################
 
 
@@ -12,7 +12,6 @@ import numpy as np
 import pandas as pd
 import torch
 import torch.nn as nn
-import torch.nn.functional as F
 from torch.utils.data import DataLoader, Dataset, random_split
 from torchvision.io import read_image
 import matplotlib.pyplot as plt
@@ -24,7 +23,7 @@ DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 print(f"Using {DEVICE} device")
 
 
-class CustomImageDataset(Dataset): 
+class CustomImageDataset(Dataset):
 
     # Create a dataset from our collected data
 
@@ -39,7 +38,7 @@ class CustomImageDataset(Dataset):
 
     def __getitem__(self, idx):
         img_path = os.path.join(self.img_dir, self.img_labels.iloc[idx, 0])
-        image = read_image(img_path) / 255 
+        image = read_image(img_path) / 255
         #print(image.float().size())
         steering = self.img_labels.iloc[idx, 1].astype(np.float32)
         throttle = self.img_labels.iloc[idx, 2].astype(np.float32)
