@@ -28,8 +28,8 @@ throttle_lim = data['throttle_trim']
 
 
 # Load CNN model
-model = cnn_network.dense_net()
-model.load_state_dict(torch.load("dense_data2023-02-10-13-41.pth", map_location=torch.device('cpu')))
+model = cnn_network.cnn_network()
+model.load_state_dict(torch.load("cnn_network2023-02-15-17-04.pth", map_location=torch.device('cpu')))
 
 # Setup Transforms
 img2tensor = ToTensor()
@@ -39,8 +39,8 @@ resize = Resize(size=(300,300))
 cap = cv.VideoCapture(0) #video capture from 0 or -1 should be the first camera plugged in. If passing 1 it would select the second camera
 # cap.set(cv.CAP_PROP_FPS, 10)
 
-#times = [] # array to hold the elapsed time between each recieved frame
-#start_time = time.time()
+times = [] # array to hold the elapsed time between each recieved frame
+start_time = time.time()
 
 while True:
     ret, frame = cap.read()   
@@ -52,14 +52,14 @@ while True:
         #gray = cv.cvtColor(frame, cv.COLOR_BGR2GRAY)  # we changed this from b&w to color
         #img_tensor = img2tensor(gray)
         img_tensor = resize(img_tensor) # I am 90% certain that this line is not needed -- changing the size should not affect predictions
-        print(img_tensor.shape)
+        #print(img_tensor.shape)
     with torch.no_grad():
         pred = model(img_tensor.unsqueeze(dim=0)) # This line adds an extra dimension to the image tensor (print shape before and after to observe this effect)
     #print(pred)
     steering, throttle = pred[0][0].item(), pred[0][1].item()
     if throttle * throttle_lim < -100:
         throttle = -1
-    print("steering: ", steering, "     throttle: ", throttle)
+    #print("steering: ", steering, "     throttle: ", throttle)
     motor.drive(throttle * throttle_lim) 
     #print("motor: ", throttle * throttle_lim) 
     ang = 90 * (1 + steering) + steering_trim 
@@ -70,17 +70,18 @@ while True:
     kit.servo[0].angle = ang
     #print("ang: ", ang)
 
-    #elapsed_time = time.time() - start_time
-    #times.append(elapsed_time)
-    #start_time = time.time()
+    elapsed_time = time.time() - start_time
+    times.append(elapsed_time)
+    start_time = time.time()
     #print("elapsed time: ", elapsed_time)
-    #print("Average Recieved Image Rate: ", sum(times) / len(times))
+    print("Average Recieved Image Rate: ", len(times) / sum(times))
 
     if cv.waitKey(1)==ord('q'):
         motor.stop()
         motor.close()
         break
 
+print(len(times) / sum(times))
 
 # When everything done, release the capture
 cap.release()
