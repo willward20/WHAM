@@ -11,6 +11,7 @@ from datetime import datetime
 import time
 from gpiozero import LED
 import json
+from imagethreading import ThreadWriter
 
 # define servokit
 kit = ServoKit(channels=16)
@@ -39,6 +40,10 @@ i = 0  # image index
 action = [0., 0.]
 Record_data = -1
 led = LED(4)
+
+#initializing the necissarry variables to dedicate a thread to image processing
+writer = ThreadWriter()
+writer.start()
 
 while True:
     ret, frame = cap.read()   
@@ -85,7 +90,8 @@ while True:
         time.sleep(0.1)
     
     if Record_data == 1:
-        cv.imwrite(image_dir + str(i)+'.jpg', frame) # changed frame to gray
+        #cv.imwrite(image_dir + str(i)+'.jpg', frame) # changed frame to gray
+        writer.write_file(image_dir + str(i)+'.jpg', frame)
         # save labels
         label = [str(i)+'.jpg'] + list(action)
         label_path = os.path.join(os.path.dirname(os.path.dirname(image_dir)), 'labels.csv')
