@@ -14,9 +14,11 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from torch.utils.data import DataLoader, Dataset, random_split
-from torchvision.io import read_image
+#from torchvision.io import read_image
+from torchvision import transforms
 import matplotlib.pyplot as plt
 import cnn_network
+import cv2 as cv
 
 
 # Designate processing unit for CNN training
@@ -28,25 +30,22 @@ class CustomImageDataset(Dataset):
 
     # Create a dataset from our collected data
 
-    def __init__(self, annotations_file, img_dir, transform=None, target_transform=None):
+    def __init__(self, annotations_file, img_dir, transform=transforms.ToTensor()):
         self.img_labels = pd.read_csv(annotations_file)
         self.img_dir = img_dir
         self.transform = transform
-        self.target_transform = target_transform
 
     def __len__(self):
         return len(self.img_labels)
 
     def __getitem__(self, idx):
         img_path = os.path.join(self.img_dir, self.img_labels.iloc[idx, 0])
-        image = read_image(img_path) / 255 
-        #print(image.float().size())
+        #image = read_image(img_path) / 255 
+        image = cv.imread(img_path, cv.IMREAD_COLOR)
         steering = self.img_labels.iloc[idx, 1].astype(np.float32)
         throttle = self.img_labels.iloc[idx, 2].astype(np.float32)
         if self.transform:
             image = self.transform(image)
-        #if self.target_transform:
-        #    label = self.target_transform(label)
         return image.float(), steering, throttle
 
 
@@ -61,12 +60,12 @@ def train(dataloader, model, loss_fn, optimizer):
     train_loss = 0.0
 
 
-    for batch, (X, steering, throttle) in enumerate(dataloader):
+    for batch, (image, steering, throttle) in enumerate(dataloader):
         #Combine steering and throttle into one tensor (2 columns, X rows)
-        y = torch.stack((steering, throttle), -1) 
+        target = torch.stack((steering, throttle), -1) 
         #y = y.float()
 
-        X, y = X.to(DEVICE), y.to(DEVICE)
+        X, y = image.to(DEVICE), target.to(DEVICE)
         #print("Size X: ", X.size()) # torch.Size([BATCHSIZE, 3, 480, 640])
 
         # Compute prediction error
@@ -94,13 +93,13 @@ def test(dataloader, model, loss_fn):
     model.eval()
     test_loss = 0.0
     with torch.no_grad():
-        for X, steering, throttle in dataloader:
+        for image, steering, throttle in dataloader:
 
             #Combine steering and throttle into one tensor (2 columns, X rows)
-            y = torch.stack((steering, throttle), -1) 
-            y = y.float()
+            target = torch.stack((steering, throttle), -1) 
+            target = target.float()
             
-            X, y = X.to(DEVICE), y.to(DEVICE)
+            X, y = image.to(DEVICE), target.to(DEVICE)
 
             pred = model(X)
             loss = loss_fn(pred, y).item()
@@ -144,21 +143,20 @@ if __name__ == '__main__':
     # Define the size for train and test data
     train_data_len = len(collected_data)
     train_data_size = round(train_data_len*0.9)
-    test_data_size = round(train_data_len*0.1) 
+    test_data_size = train_data_len - train_data_size 
     print("len and train and test: ", train_data_len, " ", train_data_size, " ", test_data_size)
 
     # Load the datset (split into train and test)
     train_data, test_data = random_split(collected_data, [train_data_size, test_data_size])
-    train_dataloader = DataLoader(train_data, batch_size=50)
-    test_dataloader = DataLoader(test_data, batch_size=50)
-    epochs = 5
-
+    train_dataloader = DataLoader(train_data, batch_size=100)
+    test_dataloader = DataLoader(test_data, batch_size=100)
 
 
     # Initialize the model
-    model = cnn_network.dense_net().to(DEVICE) # choose the architecture class from cnn_network.py
+    model = cnn_network.DonkeyNet().to(DEVICE) # choose the architecture class from cnn_network.py
     loss_fn = nn.MSELoss()
-    optimizer = torch.optim.Adam(model.parameters(), lr= 0.0001)
+    optimizer = torch.optim.Adam(model.parameters(), lr= 0.001)
+    epochs = 10
 
     # Optimize the model
     train_loss = []
@@ -187,7 +185,7 @@ if __name__ == '__main__':
     epochs_array = list(range(1, epochs+1))
     print(epochs_array)
 
-    graph_data(epochs_array, train_loss, test_loss, "dense_data2023-02-10-13-41", "dense_data2023-02-10-13-41.jpg")
+    graph_data(epochs_array, train_loss, test_loss, "test_smaller", "test_smaller_10_epochs.jpg")
 
 
     """
@@ -202,5 +200,5 @@ if __name__ == '__main__':
     """
 
     # Save the model
-    torch.save(model.state_dict(), "dense_data2023-02-10-13-41.pth")
-    print("Saved PyTorch Model State to data2023-02-10-13-41.pth")
+    torch.save(model.state_dict(), "test_smaller_10_epochs.pth")
+    #print("Saved PyTorch Model State to data2023-02-10-13-41.pth")
