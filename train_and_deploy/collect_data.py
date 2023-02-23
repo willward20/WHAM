@@ -96,8 +96,8 @@ while True:
         label = [str(i)+'.jpg'] + list(action)
         label_path = os.path.join(os.path.dirname(os.path.dirname(image_dir)), 'labels.csv')
         with open(label_path, 'a+', newline='') as f:
-            writer = csv.writer(f)
-            writer.writerow(label)  # write the data
+            writer2 = csv.writer(f)
+            writer2.writerow(label)  # write the data
         i += 1
         
     if cv.waitKey(1)==ord('q'):
