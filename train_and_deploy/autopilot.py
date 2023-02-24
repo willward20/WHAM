@@ -28,8 +28,8 @@ throttle_lim = data['throttle_trim']
 
 
 # Load CNN model
-model = cnn_network.cnn_network()
-model.load_state_dict(torch.load("cnn_network2023-02-15-17-04.pth", map_location=torch.device('cpu')))
+model = cnn_network.donkey_net()
+model.load_state_dict(torch.load("./donkeynet32epoch_data2023-02-15-17-04.pth", map_location=torch.device('cpu')))
 
 # Setup Transforms
 img2tensor = ToTensor()
