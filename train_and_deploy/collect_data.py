@@ -40,7 +40,7 @@ pygame.joystick.init()
 pygame.joystick.Joystick(0).init()
 #stabilizer = VidStab()
 cap = cv.VideoCapture(0) #video capture from 0 or -1 should be the first camera plugged in. If passing 1 it would select the second camera
-cap.set(cv.CAP_PROP_FPS, 30)
+cap.set(cv.CAP_PROP_FPS, 20)
 i = 0  # image index
 action = [0., 0.]
 Record_data = -1
@@ -51,7 +51,7 @@ while True:
     if frame is not None:
         #cv.imshow('frame', frame)  # debug
         #frame = cv.resize(frame, (int(frame.shape[1]), int(frame.shape[0]))) 
-        frame = cv.resize(frame, (300, 300))
+        frame = cv.resize(frame, (120, 160))
         #gray = cv.cvtColor(frame, cv.COLOR_BGR2GRAY)
     #stabilized_frame = stabilizer.stabilize_frame(input_frame=gray,smoothing_window=4)
     # if stabilized_frame is None:
