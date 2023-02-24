@@ -39,6 +39,7 @@ i = 0  # image index
 action = [0., 0.]
 Record_data = -1
 led = LED(4)
+headlight = LED(16)
 
 while True:
     ret, frame = cap.read()   
@@ -79,9 +80,11 @@ while True:
         if Record_data == 1:
             print("Recording Data")
             led.on()
+            headlight.on()
         else:
             print("Stopping Data Logging")
             led.off()
+            headlight.off()
         time.sleep(0.1)
     
     if Record_data == 1:
