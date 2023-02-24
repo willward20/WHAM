@@ -1,0 +1,5 @@
+*.pth
+*.jpg
+__pycache__
+images
+labels.csv
