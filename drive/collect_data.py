@@ -14,10 +14,10 @@ import csv
 # SETUP
 # init engine and steering wheel
 engine = PhaseEnableMotor(phase=19, enable=26)
-kit = ServoKit(channels=8, address=0x40)
-steer = kit.servo[0]
-MAX_THROTTLE = 0.32
-STEER_CENTER = 90
+kit = ServoKit(channels=16, address=0x40)
+steer = kit.servo[15]
+MAX_THROTTLE = 0.50
+STEER_CENTER = 95.5
 MAX_STEER = 60
 engine.stop()
 steer.angle = STEER_CENTER
@@ -29,9 +29,9 @@ js = joystick.Joystick(0)
 # init camera
 cv.startWindowThread()
 cam = cv.VideoCapture(0)
-cam.set(cv.CAP_PROP_FPS, 30)
+cam.set(cv.CAP_PROP_FPS, 20)
 # create data storage
-image_dir = '/home/pbd0/playground/wham_buggy/train/data/' + datetime.now().strftime("%Y%m%d_%H%M") + '/images/'
+image_dir = '/home/wham/WHAM/train/data/' + datetime.now().strftime("%Y%m%d%H%M") + '/images/'
 if not os.path.exists(image_dir):
     try:
         os.makedirs(image_dir)
@@ -77,14 +77,14 @@ try:
                     engine.backward(-vel)
                 else:
                     engine.stop()
-                ang = STEER_CENTER - MAX_STEER * ax0_val
+                ang = STEER_CENTER + MAX_STEER * ax0_val
                 steer.angle = ang  # drive servo
-                action = [ax4_val, ax0_val]  # vel, ang
+                action = [ax0_val, ax4_val]  # steer, throttle
                 print(f"engine speed: {vel}, steering angle: {ang}")
         if record_data:
-            image = cv.resize(frame, (200, 200))
+            image = cv.resize(frame, (120, 160))
             cv.imwrite(image_dir + str(frame_count)+'.jpg', image)  # save image
-            label = [str(frame_count)+'.jpg'] + list(action)
+            label = [str(frame_count)+'.jpg'] + action
             with open(label_path, 'a+', newline='') as f:
                 writer = csv.writer(f)
                 writer.writerow(label)  # save labels

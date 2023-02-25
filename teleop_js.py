@@ -60,7 +60,7 @@ try:
                     engine.stop()
                 ang = STEER_CENTER + MAX_STEER * ax0_val
                 steer.angle = ang  # drive servo
-                action = (ax4_val, ax0_val)  # vel, ang
+                action = (ax0_val, ax4_val)  # steer, throttle
                 print(f"throttle axis: {ax4_val}, steering axis: {ax0_val}\nengine speed: {vel}, steering angle: {ang}")
         if cv.waitKey(1) == ord('q'):
             engine.stop()
