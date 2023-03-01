@@ -1,5 +1,5 @@
 ##################################################################
-# Program Name: collect_data.py
+# Program Name: teleop_js.py
 # Contributors: 
 # 
 #  
@@ -12,10 +12,9 @@ import cv2 as cv
 from adafruit_servokit import ServoKit
 import motor
 import pygame
+import time
 from gpiozero import LED
 import json
-import csv
-from datetime import datetime
 
 from time import time
 
@@ -29,57 +28,40 @@ throttle_lim = data['throttle_lim']
 # init servo controller
 kit = ServoKit(channels=16)
 servo = kit.servo[15]
-# init LEDs
-head_led = LED(16)
-tail_led = LED(12)
-# create data storage
-image_dir = os.path.join(sys.path[0], 'data', datetime.now().strftime("%Y%m%d%H%M"), 'images/')
-if not os.path.exists(image_dir):
-    try:
-        os.makedirs(image_dir)
-    except OSError as e:
-        if e.errno != errno.EEXIST:
-            raise
-label_path = os.path.join(os.path.dirname(os.path.dirname(image_dir)), 'labels.csv')
+
 # init controller
 pygame.display.init()
 pygame.joystick.init()
 js = pygame.joystick.Joystick(0)
 # init variables
 throttle, steer = 0., 0.
-is_recording = False
-frame_counts = 0
+head_led = LED(16)
+tail_led = LED(12)
+LED_STATUS = False
 # init camera
 cap = cv.VideoCapture(0)
 cap.set(cv.CAP_PROP_FPS, 20)
-for i in reversed(range(60)):  # warm up camera
+for i in reversed(range(60)):
     if not i % 20:
         print(i/20)
     ret, frame = cap.read()
-# init timer, uncomment if you are cuious about frame rate
+# init timer
 start_stamp = time()
+frame_counts = 0
 ave_frame_rate = 0.
 
-
-# MAIN
 try:
     while True:
         ret, frame = cap.read()
-        if frame is not None:
-            frame = cv.resize(frame, (120, 160))
         for e in pygame.event.get():
             if e.type == pygame.JOYAXISMOTION:
                 throttle = -round((js.get_axis(1)), 2)  # throttle input: -1: max forward, 1: max backward
                 steer = round((js.get_axis(3)), 2)  # steer_input: -1: left, 1: right
             elif e.type == pygame.JOYBUTTONDOWN:
                 if pygame.joystick.Joystick(0).get_button(0):
-                    is_recording = not is_recording
+                    LED_STATUS = not LED_STATUS
                     head_led.toggle()
                     tail_led.toggle()
-                    if is_recording:
-                        print("Recording data")
-                    else:
-                        print("Stopping data logging")
         motor.drive(throttle * throttle_lim)  # apply throttle limit
         ang = 90 * (1 + steer) + steering_trim
         if ang > 180:
@@ -89,18 +71,10 @@ try:
         servo.angle = ang
         action = [steer, throttle]
         print(f"action: {action}")
-        if is_recording:
-            cv.imwrite(image_dir + str(frame_counts)+'.jpg', frame) # changed frame to gray
-            # save labels
-            label = [str(frame_counts)+'.jpg'] + action
-            with open(label_path, 'a+', newline='') as f:
-                writer = csv.writer(f)
-                writer.writerow(label)  # write the data
-            frame_counts += 1
-        # monitor frame rate
+        frame_counts += 1
         duration_since_start = time() - start_stamp
         ave_frame_rate = frame_counts / duration_since_start
-        print(f"frame rate: {ave_frame_rate}")
+        # print(f"frame rate: {ave_frame_rate}")
         if cv.waitKey(1)==ord('q'):
             motor.kill()
             cv.destroyAllWindows()
