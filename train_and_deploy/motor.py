@@ -29,14 +29,14 @@ pwm = GPIO.PWM(PWM_PIN, 1000)
 #     GPIO.output(DIR_PIN, GPIO.HIGH)
 #     pwm.start(speed)
 
-def drive(speed):
+def drive(speed=0):
     """Motor driving function
     Note: when listen to the joystick, verify the sign of speed.
     Args:
         speed: float in range [-100, 100]
     """
-    assert speed > 100
-    assert speed < -100
+    assert speed <= 100
+    assert speed >= -100
     if speed > 0:
         GPIO.output(DIR_PIN, GPIO.LOW)  # forward
         pwm.start(speed)
