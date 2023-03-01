@@ -20,6 +20,7 @@ GPIO.setup(DIR_PIN, GPIO.OUT)
 
 # p1 = GPIO.PWM(AN1, 100)
 pwm = GPIO.PWM(PWM_PIN, 1000)
+pwm.start(0)
 
 # def forward(speed):
 #     GPIO.output(DIR_PIN, GPIO.LOW)
@@ -39,16 +40,16 @@ def drive(speed=0):
     assert speed >= -100
     if speed > 0:
         GPIO.output(DIR_PIN, GPIO.LOW)  # forward
-        pwm.start(speed)
+        pwm.ChangeDutyCycle(speed)
     elif speed < 0:
         GPIO.output(DIR_PIN, GPIO.HIGH)  # backward
         speed = -speed
-        pwm.start(speed)
+        pwm.ChangeDutyCycle(speed)
     else:
-        pwm.start(0)
+        pwm.ChangeDutyCycle(0)
 
 def stop():
-    pwm.start(0)
+    pwm.ChangeDutyCycle(0)
 
 def kill():
     stop()
