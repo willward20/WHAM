@@ -6,6 +6,7 @@ from pygame import event, display, joystick
 from adafruit_servokit import ServoKit
 from gpiozero import PhaseEnableMotor
 import cv2 as cv
+from time import time
 
 
 # SETUP
@@ -27,7 +28,12 @@ js = joystick.Joystick(0)
 cv.startWindowThread()
 cam = cv.VideoCapture(0)
 cam.set(cv.CAP_PROP_FPS, 20)
-
+for _ in reversed(range(60)):
+    ret, frame = cam.read()
+# init timer
+start_stamp = time()
+frame_counts = 0
+ave_frame_rate = 0.
 
 # MAIN
 try:
@@ -61,7 +67,14 @@ try:
                 ang = STEER_CENTER + MAX_STEER * ax0_val
                 steer.angle = ang  # drive servo
                 action = (ax0_val, ax4_val)  # steer, throttle
-                print(f"throttle axis: {ax4_val}, steering axis: {ax0_val}\nengine speed: {vel}, steering angle: {ang}")
+                # print(f"throttle axis: {ax4_val}, steering axis: {ax0_val}\nengine speed: {vel}, steering angle: {ang}")
+
+        # time frame
+        frame_counts += 1
+        duration_since_start = time() - start_stamp
+        ave_frame_rate = frame_counts / duration_since_start
+        print(f"frame rate: {ave_frame_rate}")
+
         if cv.waitKey(1) == ord('q'):
             engine.stop()
             engine.close()
