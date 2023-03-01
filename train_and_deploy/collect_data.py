@@ -16,6 +16,8 @@ from imagethreading import ThreadWriter
 # define servokit
 kit = ServoKit(channels=16)
 
+os.environ["SDL_VIDEODRIVER"] = "dummy"
+
 f = open('config.json')
 data = json.load(f)
 steering_trim = data['steering_trim']
