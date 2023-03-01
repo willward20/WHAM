@@ -20,6 +20,7 @@ steer = kit.servo[15]
 MAX_THROTTLE = 0.30
 STEER_CENTER = 95.5
 MAX_STEER = 60
+
 engine.stop()
 steer.angle = STEER_CENTER
 # init camera
