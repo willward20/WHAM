@@ -33,15 +33,14 @@ servo = kit.servo[15]
 pygame.display.init()
 pygame.joystick.init()
 js = pygame.joystick.Joystick(0)
-# pygame.joystick.Joystick(0).init()
-# init camera
-cap = cv.VideoCapture(0)
-cap.set(cv.CAP_PROP_FPS, 20)
 # init variables
 throttle, steer = 0., 0.
 head_led = LED(16)
 tail_led = LED(12)
 LED_STATUS = False
+# init camera
+cap = cv.VideoCapture(0)
+cap.set(cv.CAP_PROP_FPS, 20)
 for i in reversed(range(60)):
     if not i % 20:
         print(i/20)
@@ -54,7 +53,6 @@ ave_frame_rate = 0.
 try:
     while True:
         ret, frame = cap.read()
-        # pygame.event.pump()
         for e in pygame.event.get():
             if e.type == pygame.JOYAXISMOTION:
                 throttle = -round((js.get_axis(1)), 2)  # throttle input: -1: max forward, 1: max backward
