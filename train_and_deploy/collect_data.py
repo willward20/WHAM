@@ -19,16 +19,18 @@ from datetime import datetime
 
 from time import time
 
+os.environ["SDL_VIDEODRIVER"] = "dummy"
+
 # SETUP
 # load configs
 config_path = os.path.join(sys.path[0], "config.json")
 f = open(config_path)
 data = json.load(f)
-steering_trim = data['steering_trim']
+steering_trim = -1 * data['steering_trim']
 throttle_lim = data['throttle_lim']
 # init servo controller
 kit = ServoKit(channels=16)
-servo = kit.servo[15]
+servo = kit.servo[0]
 # init LEDs
 head_led = LED(16)
 tail_led = LED(12)
@@ -70,7 +72,7 @@ try:
         for e in pygame.event.get():
             if e.type == pygame.JOYAXISMOTION:
                 throttle = -round((js.get_axis(1)), 2)  # throttle input: -1: max forward, 1: max backward
-                steer = round((js.get_axis(3)), 2)  # steer_input: -1: left, 1: right
+                steer = -1 * round((js.get_axis(3)), 2)  # steer_input: -1: left, 1: right
             elif e.type == pygame.JOYBUTTONDOWN:
                 if pygame.joystick.Joystick(0).get_button(0):
                     is_recording = not is_recording
