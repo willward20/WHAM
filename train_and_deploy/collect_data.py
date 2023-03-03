@@ -19,9 +19,10 @@ from datetime import datetime
 
 from time import time
 
-os.environ["SDL_VIDEODRIVER"] = "dummy"
 
 # SETUP
+# dummy video driver
+os.environ["SDL_VIDEODRIVER"] = "dummy"
 # load configs
 config_path = os.path.join(sys.path[0], "config.json")
 f = open(config_path)
@@ -76,8 +77,8 @@ try:
             sys.exit()
         for e in pygame.event.get():
             if e.type == pygame.JOYAXISMOTION:
-                throttle = -round((js.get_axis(1)), 2)  # throttle input: -1: max forward, 1: max backward
-                steer = -1 * round((js.get_axis(3)), 2)  # steer_input: -1: left, 1: right
+                throttle = -js.get_axis(1)  # throttle input: -1: max forward, 1: max backward
+                steer = -js.get_axis(3)  # steer_input: -1: left, 1: right
             elif e.type == pygame.JOYBUTTONDOWN:
                 if pygame.joystick.Joystick(0).get_button(0):
                     is_recording = not is_recording
