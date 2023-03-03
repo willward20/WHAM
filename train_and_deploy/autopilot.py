@@ -12,20 +12,29 @@ import os
 import cv2 as cv
 from adafruit_servokit import ServoKit
 import motor
-# import pygame
 from gpiozero import LED
 import json
-from datetime import datetime
 
 from time import time
-# from torchvision.transforms import ToTensor, Resize
-# import torch
-# import torch.nn as nn
 import torch
 import torch.nn as nn
 from torchvision import transforms
 
-os.environ["SDL_VIDEODRIVER"] = "dummy"
+
+# SETUP
+# load configs
+config_path = os.path.join(sys.path[0], "config.json")
+f = open(config_path)
+data = json.load(f)
+steering_trim = -1 * data['steering_trim']
+throttle_lim = data['throttle_lim']
+# init servo controller
+kit = ServoKit(channels=16)
+servo = kit.servo[0]
+# init LEDs
+head_led = LED(16)
+tail_led = LED(12)
+# load model
 class DonkeyNetwork(nn.Module):
     """
     Input image size: (120, 160, 3)
@@ -55,29 +64,10 @@ class DonkeyNetwork(nn.Module):
         return x
 
 
-# SETUP
-# load configs
-config_path = os.path.join(sys.path[0], "config.json")
-f = open(config_path)
-data = json.load(f)
-steering_trim = -1 * data['steering_trim']
-throttle_lim = data['throttle_lim']
-# init servo controller
-kit = ServoKit(channels=16)
-servo = kit.servo[0]
-# init LEDs
-head_led = LED(16)
-tail_led = LED(12)
-# load model
 model_path = os.path.join(sys.path[0], 'models', 'donkey32epoch_202303031347_volleyball.pth')
-# img2tensor = ToTensor()
 to_tensor = transforms.ToTensor()
 model = DonkeyNetwork()
 model.load_state_dict(torch.load(model_path, map_location=torch.device('cpu')))
-# init controller
-# pygame.display.init()
-# pygame.joystick.init()
-# js = pygame.joystick.Joystick(0)
 # init variables
 throttle, steer = 0., 0.
 is_recording = False
@@ -89,6 +79,8 @@ for i in reversed(range(60)):  # warm up camera
     if not i % 20:
         print(i/20)
     ret, frame = cap.read()
+head_led.on()
+tail_led.on()
 # init timer, uncomment if you are cuious about frame rate
 start_stamp = time()
 ave_frame_rate = 0.
@@ -100,36 +92,19 @@ try:
         ret, frame = cap.read()
         if frame is not None:
             frame_counts += 1
-            # frame = cv.resize(frame, (120, 160))
-            # img_tensor = img2tensor(frame) # added thi sline to get the colored img 
-            image = cv.resize(frame, (120, 160))
-            img_tensor = to_tensor(image)
-
         else:
             motor.kill()
+            head_led.off()
+            tail_led.off()
             cv.destroyAllWindows()
-            # pygame.quit()
             sys.exit()
-        # for e in pygame.event.get():
-            # if e.type == pygame.JOYAXISMOTION:
-            #     throttle = -round((js.get_axis(1)), 2)  # throttle input: -1: max forward, 1: max backward
-            #     steer = -1 * round((js.get_axis(3)), 2)  # steer_input: -1: left, 1: right
-            # elif e.type == pygame.JOYBUTTONDOWN:
-            #     if pygame.joystick.Joystick(0).get_button(0):
-            #         is_recording = not is_recording
-            #         head_led.toggle()
-            #         tail_led.toggle()
-            #         if is_recording:
-            #             print("Recording data")
-            #         else:
-            #             print("Stopping data logging")
-        # with torch.no_grad():
-        #     pred = model(img_tensor.unsqueeze(dim=0)) # This line adds an extra dimension to the image tensor (print shape before and after to observe this effect)
-        # steer, throttle = pred[0][0].item(), pred[0][1].item()
-        steer, throttle = model(img_tensor[None, :]).squeeze()
-        steer = round(float(steer), 2)
-        throttle = round(float(throttle), 2)
-        if throttle >= 1:
+        # predict steer and throttle
+        image = cv.resize(frame, (120, 160))
+        img_tensor = to_tensor(image)
+        pred_steer, pred_throttle = model(img_tensor[None, :]).squeeze()
+        steer = float(pred_steer)
+        throttle = float(pred_throttle)
+        if throttle >= 1:  # predicted throttle may over the limit
             throttle = .999
         elif throttle <= -1:
             throttle = -.999
@@ -142,14 +117,6 @@ try:
         servo.angle = ang
         action = [steer, throttle]
         print(f"action: {action}")
-        # if is_recording:
-        #     frame = cv.resize(frame, (120, 160))
-        #     cv.imwrite(image_dir + str(frame_counts)+'.jpg', frame) # changed frame to gray
-        #     # save labels
-        #     label = [str(frame_counts)+'.jpg'] + action
-        #     with open(label_path, 'a+', newline='') as f:
-        #         writer = csv.writer(f)
-        #         writer.writerow(label)  # write the data
         # monitor frame rate
         duration_since_start = time() - start_stamp
         ave_frame_rate = frame_counts / duration_since_start
@@ -157,10 +124,12 @@ try:
         if cv.waitKey(1)==ord('q'):
             motor.kill()
             cv.destroyAllWindows()
-            # pygame.quit()
+            head_led.off()
+            tail_led.off()
             sys.exit()
 except KeyboardInterrupt:
     motor.kill()
+    head_led.off()
+    tail_led.off()
     cv.destroyAllWindows()
-    # pygame.quit()
     sys.exit()
