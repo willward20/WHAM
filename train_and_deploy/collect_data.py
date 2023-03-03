@@ -68,7 +68,12 @@ try:
     while True:
         ret, frame = cap.read()
         if frame is not None:
-            frame = cv.resize(frame, (120, 160))
+            frame_counts += 1
+        else:
+            motor.kill()
+            cv.destroyAllWindows()
+            pygame.quit()
+            sys.exit()
         for e in pygame.event.get():
             if e.type == pygame.JOYAXISMOTION:
                 throttle = -round((js.get_axis(1)), 2)  # throttle input: -1: max forward, 1: max backward
@@ -92,13 +97,13 @@ try:
         action = [steer, throttle]
         print(f"action: {action}")
         if is_recording:
+            frame = cv.resize(frame, (120, 160))
             cv.imwrite(image_dir + str(frame_counts)+'.jpg', frame) # changed frame to gray
             # save labels
             label = [str(frame_counts)+'.jpg'] + action
             with open(label_path, 'a+', newline='') as f:
                 writer = csv.writer(f)
                 writer.writerow(label)  # write the data
-            frame_counts += 1
         # monitor frame rate
         duration_since_start = time() - start_stamp
         ave_frame_rate = frame_counts / duration_since_start
