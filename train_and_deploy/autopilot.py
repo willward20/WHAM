@@ -64,7 +64,7 @@ class DonkeyNetwork(nn.Module):
         return x
 
 
-model_path = os.path.join(sys.path[0], 'models', 'donkey32epoch_202303031347_volleyball.pth')
+model_path = os.path.join(sys.path[0], 'models', 'donkey16epoch_202303031421_lsc114.pth')
 to_tensor = transforms.ToTensor()
 model = DonkeyNetwork()
 model.load_state_dict(torch.load(model_path, map_location=torch.device('cpu')))
