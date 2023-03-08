@@ -80,6 +80,10 @@ try:
                         print("Recording data")
                     else:
                         print("Stopping data logging")
+                elif pygame.joystick.Joystick(0).get_button(4):
+                    steering_trim += 0.1
+                elif pygame.joystick.Joystick(0).get_button(4):
+                    steering_trim -= 0.1
         motor.drive(throttle * throttle_lim)  # apply throttle limit
         ang = 90 * (1 + steer) + steering_trim
         if ang > 180:
