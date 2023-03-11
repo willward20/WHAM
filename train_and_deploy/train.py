@@ -12,7 +12,7 @@ from torch.utils.data import DataLoader, Dataset, random_split
 from torchvision.io import read_image
 import matplotlib.pyplot as plt
 # from resnet18_class import ResNet18
-from cnn_network import cnn_network
+from cnn_network import DonkeyNet
 from tqdm import tqdm
 
 # %%
@@ -27,7 +27,8 @@ else:
 
 # %%
 
-image_size = 20
+image_width= 120
+image_height=160
 
 
 #############################################
@@ -47,11 +48,12 @@ class CustomImageDataset(Dataset):
 
     def __getitem__(self, idx):
         img_path = os.path.join(self.img_dir, self.img_labels.iloc[idx, 0])
-        image = read_image(img_path) # / 255
-        image = fn.resize(image, size=[20])
+        # image = read_image(img_path) # / 255
+        # image = fn.resize(image, size=[20])
         # print(image.size())
-        image = image/255
+        # image = image/255
         # print(image.float().size())
+        image = cv.imread(img_path, cv.IMREAD_COLOR)
         steering = self.img_labels.iloc[idx, 1].astype(np.float32)
         throttle = self.img_labels.iloc[idx, 2].astype(np.float32)
         if self.transform:
@@ -87,12 +89,15 @@ def train(dataloader, model, loss_fn, optimizer):
         loss.backward()  # back propagatin
         optimizer.step()  # update parameters
 
-        if batch % 2 == 0:
-            loss, current = loss.item(), batch * len(X)
-            print(f"Train Loss: {loss:>7f}")
-            train_loss += loss
+        loss, sample_count = loss.item(), (batch + 1) * len(X)
+        train_loss = (train_loss*batch + loss) / (batch + 1)
+
+        # if batch % 2 == 0:
+        #     loss, current = loss.item(), batch * len(X)
+        #     print(f"Train Loss: {loss:>7f}")
+        #     train_loss += loss
     # print("Average train loss: ", statistics.mean(train_loss))
-    return train_loss / num_batches
+    return train_loss
 
 
 # %%
@@ -116,9 +121,10 @@ def test(dataloader, model, loss_fn):
             test_loss += loss
             # accuracy += (pred.argmax(1) == y).type(torch.float).sum().item()
     # avg_loss = statistics.mean(test_loss)
-    # print(f"Test Error: Avg loss: {avg_loss:>8f} \n")
+    test_loss /=num_batches
+    print(f"Test Error: Avg loss: {avg_loss:>8f} \n")
 
-    return test_loss / num_batches
+    return test_loss 
 
 
 # %%
@@ -127,8 +133,8 @@ def graph_data(x, train, test, TITLE, FILENAME):
     fig = plt.figure()
     axs = fig.add_subplot(1, 1, 1)
 
-    plt.plot(x, train, color='r', label="Training Loss")
-    plt.plot(x, test, color='b', label='Testing Loss')
+    plt.plot(x, train, color='b', label="Training Loss")
+    plt.plot(x, test, color='r', label='Testing Loss')
     axs.set_ylabel('Loss')
     axs.set_xlabel('Training Epoch')
     axs.set_title(TITLE)
@@ -149,8 +155,8 @@ def graph_data(x, train, test, TITLE, FILENAME):
 
 
 # Create a dataset
-annotations_file = "../../data2023-01-27-14-17/labels.csv"  # the name of the csv file
-img_dir = "../../data2023-01-27-14-17/images"  # the name of the folder with all the images in it
+annotations_file = "data/data_finale120_160/labels.csv"  # the name of the csv file
+img_dir = "data/data_finale120_160/images"  # the name of the folder with all the images in it
 collected_data = CustomImageDataset(annotations_file, img_dir)
 print("data length: ", len(collected_data))
 
@@ -164,11 +170,11 @@ print("len and train and test: ", train_data_len, " ", train_data_size, " ", tes
 train_data, test_data = random_split(collected_data, [train_data_size, test_data_size])
 train_dataloader = DataLoader(train_data, batch_size=100)
 test_dataloader = DataLoader(test_data, batch_size=100)
-epochs = 10
+epochs = 20
 
 # Initialize the model
 # input_shape = (100, 10, image_size, image_size)
-model = cnn_network()
+model = DonkeyNet().to(device)
 
 loss_fn = nn.MSELoss()
 optimizer = torch.optim.Adam(model.parameters(), lr=0.0001)
@@ -176,6 +182,7 @@ optimizer = torch.optim.Adam(model.parameters(), lr=0.0001)
 # Optimize the model
 train_loss = []
 test_loss = []
+Title="DonkeyNet_120_160_03_11_20Epochs"
 pbar = tqdm(range(epochs))
 for t in pbar:
     pbar.set_description('epochs {}'.format(t + 1))
@@ -203,8 +210,8 @@ epochs_array = list(range(1, epochs + 1))
 print(epochs_array)
 
 # %%
-graph_data(epochs_array, train_loss, test_loss, "CNN", "size20_cnn_01-27-14-17.jpg")
+graph_data(epochs_array, train_loss, test_loss,Title, f"{Title}.jpg")
 
 # Save the model
-torch.save(model.state_dict(), "size20_cnn_01-27-14-17.pth")
-print("Saved PyTorch Model State to size20_cnn_01-27-14-17.pth")
+torch.save(model.state_dict(), f"{Title}.pth")
+print(f"Saved PyTorch Model State to {Title}.pth")
