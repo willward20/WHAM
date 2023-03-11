@@ -6,6 +6,7 @@ import os
 import numpy as np
 import pandas as pd
 import torch
+import cv2 as cv
 import torch.nn as nn
 import  torchvision.transforms.functional as fn
 from torch.utils.data import DataLoader, Dataset, random_split
@@ -48,12 +49,12 @@ class CustomImageDataset(Dataset):
 
     def __getitem__(self, idx):
         img_path = os.path.join(self.img_dir, self.img_labels.iloc[idx, 0])
-        # image = read_image(img_path) # / 255
+        image = read_image(img_path)/ 255
         # image = fn.resize(image, size=[20])
         # print(image.size())
         # image = image/255
         # print(image.float().size())
-        image = cv.imread(img_path, cv.IMREAD_COLOR)
+        # image = cv.imread(img_path, cv.IMREAD_COLOR)
         steering = self.img_labels.iloc[idx, 1].astype(np.float32)
         throttle = self.img_labels.iloc[idx, 2].astype(np.float32)
         if self.transform:
@@ -119,10 +120,8 @@ def test(dataloader, model, loss_fn):
             loss = loss_fn(pred, y).item()
             # print(f"Test Loss: {loss:>7f}")
             test_loss += loss
-            # accuracy += (pred.argmax(1) == y).type(torch.float).sum().item()
-    # avg_loss = statistics.mean(test_loss)
     test_loss /=num_batches
-    print(f"Test Error: Avg loss: {avg_loss:>8f} \n")
+    print(f"Test Error: Avg loss: {test_loss:>8f} \n")
 
     return test_loss 
 
@@ -155,8 +154,9 @@ def graph_data(x, train, test, TITLE, FILENAME):
 
 
 # Create a dataset
-annotations_file = "data/data_finale120_160/labels.csv"  # the name of the csv file
-img_dir = "data/data_finale120_160/images"  # the name of the folder with all the images in it
+dir ="data/data_finale120_160/" 
+annotations_file = f"{dir}labels.csv"  # the name of the csv file
+img_dir = f"{dir}img"  # the name of the folder with all the images in it
 collected_data = CustomImageDataset(annotations_file, img_dir)
 print("data length: ", len(collected_data))
 
