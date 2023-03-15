@@ -4,14 +4,16 @@ import cv2 as cv
 
 import pandas as pd
 
-#file processed
-# 202303031349 -->done
-# 202303031347 --> done
-# 202303031421 --> not process those are images collected in the robotics club room for training. 
+#file processed softball
+# data2023-02-16-23-07 -- done
+# data2023-02-15-17-04 --done
+# data2023-02-15-17-03 --done
+# data2023-02-16-22-50 -- done
 
-old_csv = 'data/202303031421/labels.csv'
-images = 'data/202303031421/images'
-new_csv = "data/data_finale/labels1.csv"
+
+old_csv = 'data/softball/SoftballData/data2023-02-16-23-07/labels.csv'
+images = 'data/softball/SoftballData/data2023-02-16-23-07/images'
+new_csv = "data/softball/softball300_sunny/labels.csv"
 
 def move_img(filename):
     unique_id = str(uuid.uuid4())
@@ -21,7 +23,7 @@ def move_img(filename):
     img_path = f"{images}/{filename}"
     #print(img_path)
     image = cv.imread(img_path)
-    cv.imwrite(f"data/data_finale/img1/{new_filename}", image)
+    cv.imwrite(f"data/softball/softball300_sunny/images/{new_filename}", image)
     return new_filename
 
 

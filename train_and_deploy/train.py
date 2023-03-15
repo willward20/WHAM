@@ -28,8 +28,8 @@ else:
 
 # %%
 
-image_width= 120
-image_height=160
+image_width= 300
+image_height=300
 
 
 #############################################
@@ -154,9 +154,9 @@ def graph_data(x, train, test, TITLE, FILENAME):
 
 
 # Create a dataset
-dir ="data/data_finale120_160/" 
+dir ="data/softball/softball300_sunny/" 
 annotations_file = f"{dir}labels.csv"  # the name of the csv file
-img_dir = f"{dir}img"  # the name of the folder with all the images in it
+img_dir = f"{dir}images"  # the name of the folder with all the images in it
 collected_data = CustomImageDataset(annotations_file, img_dir)
 print("data length: ", len(collected_data))
 
@@ -182,7 +182,7 @@ optimizer = torch.optim.Adam(model.parameters(), lr=0.0001)
 # Optimize the model
 train_loss = []
 test_loss = []
-Title="DonkeyNet_120_160_03_11_20Epochs"
+Title="DonkeyNet_softball300_sunny_20Epochs"
 pbar = tqdm(range(epochs))
 for t in pbar:
     pbar.set_description('epochs {}'.format(t + 1))
