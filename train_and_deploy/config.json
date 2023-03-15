@@ -1,4 +1,4 @@
 {
-    "steering_trim": -11,
-    "throttle_lim": 40
+    "throttle_trim": 60,
+    "steering_trim": 12.5
 }
