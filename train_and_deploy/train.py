@@ -98,8 +98,8 @@ def test(dataloader, model, loss_fn):
 if __name__ == '__main__':
 
     # Create a dataset
-    annotations_file = "202303151112/labels.csv"  # the name of the csv file
-    img_dir = "202303151112 /images"  # the name of the folder with all the images in it
+    annotations_file = "FOLDER/labels.csv"  # the name of the csv file
+    img_dir = "FOLDER/images"  # the name of the folder with all the images in it
     collected_data = CustomImageDataset(annotations_file, img_dir)
     print("data length: ", len(collected_data))
 
@@ -157,12 +157,12 @@ if __name__ == '__main__':
     plt.plot(epochs_array, test_loss, '--', color='orange', label='Testing Loss')
     axs.set_ylabel('Loss')
     axs.set_xlabel('Training Epoch')
-    axs.set_title('202303151112 Volleyball DonkeyNet 15 Epochs lr=1e-3')
+    axs.set_title('FOLDER LOCATION DonkeyNet 15 Epochs lr=1e-3')
     axs.legend()
-    fig.savefig('202303151112_Volleyball_DonkeyNet_15_epochs_lr_1e_3.png')
+    fig.savefig('FOLDER_LOCATION_DonkeyNet_15_epochs_lr_1e_3.png')
 
     # Save the model
-    torch.save(model.state_dict(), "202303151112_Volleyball_DonkeyNet_15_epochs_lr_1e_3.pth")
+    torch.save(model.state_dict(), "FOLDER_LOCATION_DonkeyNet_15_epochs_lr_1e_3.pth")
 
 
     
