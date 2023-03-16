@@ -16,7 +16,6 @@ from datetime import datetime
 
 from time import time
 
-os.environ["SDL_VIDEODRIVER"] = "dummy"
 
 # SETUP
 # dummy video driver
@@ -75,8 +74,8 @@ try:
             sys.exit()
         for e in pygame.event.get():
             if e.type == pygame.JOYAXISMOTION:
-                throttle = -round((js.get_axis(1)), 2)  # throttle input: -1: max forward, 1: max backward
-                steer = -1 * round((js.get_axis(3)), 2)  # steer_input: -1: left, 1: right
+                throttle = -js.get_axis(1)  # throttle input: -1: max forward, 1: max backward
+                steer = -js.get_axis(3)  # steer_input: -1: left, 1: right
             elif e.type == pygame.JOYBUTTONDOWN:
                 if pygame.joystick.Joystick(0).get_button(0):
                     is_recording = not is_recording
@@ -97,7 +96,7 @@ try:
         print(f"action: {action}")
         if is_recording:
             frame = cv.resize(frame, (120, 160))
-            cv.imwrite(image_dir + str(frame_counts)+'.jpg', frame) # changed frame to gray
+            cv.imwrite(image_dir + datetime.now().strftime("%Y_%m_%d_%H_%M_")+str(frame_counts)+'.jpg', frame) # changed frame to gray
             # save labels
             label = [datetime.now().strftime("%Y_%m_%d_%H_%M_")+str(frame_counts)+'.jpg'] + action
             with open(label_path, 'a+', newline='') as f:
