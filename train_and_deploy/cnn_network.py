@@ -1,6 +1,11 @@
+
+# Neural Network architecture definitions
+
 import torch.nn as nn
 import torch
 import torch.nn.functional as F
+
+
 class cnn_network(nn.Module):
     def __init__(self):
         super().__init__()
@@ -58,7 +63,6 @@ class DonkeyNet(nn.Module):
         self.conv64_3 = nn.Conv2d(64, 64, kernel_size=(3, 3), stride=(1, 1))
 
         self.fc1 = nn.Linear(64*8*13, 128)  # (64*30*30, 128) for 300x300 images
-
         self.fc2 = nn.Linear(128, 128)
         self.fc3 = nn.Linear(128, 2)
         self.relu = nn.ReLU()
