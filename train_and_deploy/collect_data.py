@@ -1,9 +1,6 @@
-##################################################################
-# Program Name: collect_data.py
-# Contributors: 
-# 
-#  
-###################################################################
+
+# Collect training data using bluetooth controller
+# While driving, save images and joystick inputs
 
 #!/usr/bin/python3
 import sys
