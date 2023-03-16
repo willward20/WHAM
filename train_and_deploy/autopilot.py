@@ -46,7 +46,7 @@ class DonkeyNetwork(nn.Module):
         self.conv64_5 = nn.Conv2d(32, 64, kernel_size=(5, 5), stride=(2, 2))
         self.conv64_3 = nn.Conv2d(64, 64, kernel_size=(3, 3), stride=(1, 1))
         # self.fc1 = nn.Linear(64*8*13, 128)
-        self.fc1 = nn.Linear(64*30*30, 128)
+        self.fc1 = nn.Linear(64*8*13, 128)
         self.fc2 = nn.Linear(128, 128)
         self.fc3 = nn.Linear(128, 2)
         self.relu = nn.ReLU()
@@ -65,7 +65,7 @@ class DonkeyNetwork(nn.Module):
         return x
 
 
-model_path = os.path.join(sys.path[0], 'models', 'DonkeyNet_volleyball300_rainy_20Epochs.pth')
+model_path = os.path.join(sys.path[0], 'models', 'data2023-03-03-13-47-Volleyball-DonkeyNet_15_epochs_lr_1e-3.pth')
 to_tensor = transforms.ToTensor()
 model = DonkeyNetwork()
 model.load_state_dict(torch.load(model_path, map_location=torch.device('cpu')))
@@ -100,7 +100,7 @@ try:
             cv.destroyAllWindows()
             sys.exit()
         # predict steer and throttle
-        image = cv.resize(frame, (300, 300))
+        image = cv.resize(frame, (120, 160))
         img_tensor = to_tensor(image)
         pred_steer, pred_throttle = model(img_tensor[None, :]).squeeze()
         steer = float(pred_steer)

@@ -36,7 +36,7 @@ servo = kit.servo[0]
 head_led = LED(16)
 tail_led = LED(12)
 # create data storage
-image_dir = os.path.join(sys.path[0], 'data', datetime.now().strftime("%Y%m%d%H%M"), 'images/')
+image_dir = os.path.join(sys.path[0], 'data', datetime.now().strftime("%Y_%m_%d_%H_%M"), 'images/')
 if not os.path.exists(image_dir):
     try:
         os.makedirs(image_dir)
@@ -99,9 +99,9 @@ try:
         print(f"action: {action}")
         if is_recording:
             frame = cv.resize(frame, (120, 160))
-            cv.imwrite(image_dir + str(frame_counts)+'.jpg', frame) # changed frame to gray
+            cv.imwrite(image_dir + datetime.now().strftime("%Y_%m_%d_%H_%M_")+str(frame_counts)+'.jpg', frame) # changed frame to gray
             # save labels
-            label = [str(frame_counts)+'.jpg'] + action
+            label = [datetime.now().strftime("%Y_%m_%d_%H_%M_")+str(frame_counts)+'.jpg'] + action
             with open(label_path, 'a+', newline='') as f:
                 writer = csv.writer(f)
                 writer.writerow(label)  # write the data
