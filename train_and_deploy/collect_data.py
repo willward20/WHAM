@@ -19,21 +19,24 @@ from datetime import datetime
 
 from time import time
 
+
 # SETUP
+# dummy video driver
+os.environ["SDL_VIDEODRIVER"] = "dummy"
 # load configs
 config_path = os.path.join(sys.path[0], "config.json")
 f = open(config_path)
 data = json.load(f)
-steering_trim = data['steering_trim']
+steering_trim = -1 * data['steering_trim']
 throttle_lim = data['throttle_lim']
 # init servo controller
 kit = ServoKit(channels=16)
-servo = kit.servo[15]
+servo = kit.servo[0]
 # init LEDs
 head_led = LED(16)
 tail_led = LED(12)
 # create data storage
-image_dir = os.path.join(sys.path[0], 'data', datetime.now().strftime("%Y%m%d%H%M"), 'images/')
+image_dir = os.path.join(sys.path[0], 'data', datetime.now().strftime("%Y_%m_%d_%H_%M"), 'images/')
 if not os.path.exists(image_dir):
     try:
         os.makedirs(image_dir)
@@ -66,11 +69,16 @@ try:
     while True:
         ret, frame = cap.read()
         if frame is not None:
-            frame = cv.resize(frame, (120, 160))
+            frame_counts += 1
+        else:
+            motor.kill()
+            cv.destroyAllWindows()
+            pygame.quit()
+            sys.exit()
         for e in pygame.event.get():
             if e.type == pygame.JOYAXISMOTION:
-                throttle = -round((js.get_axis(1)), 2)  # throttle input: -1: max forward, 1: max backward
-                steer = round((js.get_axis(3)), 2)  # steer_input: -1: left, 1: right
+                throttle = -js.get_axis(1)  # throttle input: -1: max forward, 1: max backward
+                steer = -js.get_axis(3)  # steer_input: -1: left, 1: right
             elif e.type == pygame.JOYBUTTONDOWN:
                 if pygame.joystick.Joystick(0).get_button(0):
                     is_recording = not is_recording
@@ -90,13 +98,13 @@ try:
         action = [steer, throttle]
         print(f"action: {action}")
         if is_recording:
-            cv.imwrite(image_dir + str(frame_counts)+'.jpg', frame) # changed frame to gray
+            frame = cv.resize(frame, (120, 160))
+            cv.imwrite(image_dir + datetime.now().strftime("%Y_%m_%d_%H_%M_")+str(frame_counts)+'.jpg', frame) # changed frame to gray
             # save labels
-            label = [str(frame_counts)+'.jpg'] + action
+            label = [datetime.now().strftime("%Y_%m_%d_%H_%M_")+str(frame_counts)+'.jpg'] + action
             with open(label_path, 'a+', newline='') as f:
                 writer = csv.writer(f)
                 writer.writerow(label)  # write the data
-            frame_counts += 1
         # monitor frame rate
         duration_since_start = time() - start_stamp
         ave_frame_rate = frame_counts / duration_since_start
