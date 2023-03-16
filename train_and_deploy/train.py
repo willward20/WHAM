@@ -10,7 +10,6 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from torch.utils.data import DataLoader, Dataset, random_split
-#from torchvision.io import read_image
 from torchvision import transforms
 import matplotlib.pyplot as plt
 import cnn_network
@@ -36,7 +35,6 @@ class CustomImageDataset(Dataset):
 
     def __getitem__(self, idx):
         img_path = os.path.join(self.img_dir, self.img_labels.iloc[idx, 0])
-        #image = read_image(img_path) / 255 
         image = cv.imread(img_path, cv.IMREAD_COLOR)
         steering = self.img_labels.iloc[idx, 1].astype(np.float32)
         throttle = self.img_labels.iloc[idx, 2].astype(np.float32)
@@ -68,7 +66,6 @@ def train(dataloader, model, loss_fn, optimizer):
         
         batch_loss, sample_count = batch_loss.item(), (batch + 1) * len(X)
         epoch_loss = (epoch_loss*batch + batch_loss) / (batch + 1)
-        # if batch % 10 == 0:
         print(f"loss: {batch_loss:>7f} [{sample_count:>5d}/{size:>5d}]")
         
     return epoch_loss
@@ -101,8 +98,8 @@ def test(dataloader, model, loss_fn):
 if __name__ == '__main__':
 
     # Create a dataset
-    annotations_file = "data2023-02-16-23-07/labels.csv"  # the name of the csv file
-    img_dir = "data2023-02-16-23-07/images"  # the name of the folder with all the images in it
+    annotations_file = "202303151112/labels.csv"  # the name of the csv file
+    img_dir = "202303151112 /images"  # the name of the folder with all the images in it
     collected_data = CustomImageDataset(annotations_file, img_dir)
     print("data length: ", len(collected_data))
 
@@ -124,7 +121,7 @@ if __name__ == '__main__':
     #     lr = 0.0001, epochs = 15 (epochs = 20 might also work)
     model = cnn_network.DonkeyNet().to(DEVICE) # choose the architecture class from cnn_network.py
     loss_fn = nn.MSELoss()
-    optimizer = torch.optim.Adam(model.parameters(), lr= 0.0001)
+    optimizer = torch.optim.Adam(model.parameters(), lr= 0.001)
     epochs = 15
 
     # Optimize the model
@@ -160,23 +157,12 @@ if __name__ == '__main__':
     plt.plot(epochs_array, test_loss, '--', color='orange', label='Testing Loss')
     axs.set_ylabel('Loss')
     axs.set_xlabel('Training Epoch')
-    axs.set_title('data2023-02-16-23-07 DonkeyNet 20 Epochs')
+    axs.set_title('202303151112 Volleyball DonkeyNet 15 Epochs lr=1e-3')
     axs.legend()
-    fig.savefig('data2023-02-16-23-07-DonkeyNet_20_epochs.png')
+    fig.savefig('202303151112_Volleyball_DonkeyNet_15_epochs_lr_1e_3.png')
 
     # Save the model
-    torch.save(model.state_dict(), "data2023-02-16-23-07-DonkeyNet_20_epochs.pth")
+    torch.save(model.state_dict(), "202303151112_Volleyball_DonkeyNet_15_epochs_lr_1e_3.pth")
 
-
-    """
-    # Load an image from the dataset and make a prediction
-    image = read_image('images/200.jpg').to(DEVICE)  # read image to tensor
-    image = (image.float() / 255 ) # convert to float and standardize between 0 and 1
-    print("loaded image after divide and float: ", image.size())
-    image = image.unsqueeze(dim=0) # add an extra dimension that is needed in order to make a prediction
-    print("loaded image after unsqueeze: ", image.size())
-    pred = model(image)
-    print(pred)
-    """
 
     
