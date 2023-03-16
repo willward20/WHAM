@@ -1,10 +1,6 @@
-##################################################################
-# Program Name: train.py
-# Contributors: 
-# 
+
 # Train an autopilot for autonomous ground vehicle using
 # convolutional neural network and labeled images. 
-###################################################################
 
 
 import os
@@ -14,9 +10,10 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from torch.utils.data import DataLoader, Dataset, random_split
-from torchvision.io import read_image
+from torchvision import transforms
 import matplotlib.pyplot as plt
 import cnn_network
+import cv2 as cv
 
 
 # Designate processing unit for CNN training
@@ -28,25 +25,21 @@ class CustomImageDataset(Dataset):
 
     # Create a dataset from our collected data
 
-    def __init__(self, annotations_file, img_dir, transform=None, target_transform=None):
+    def __init__(self, annotations_file, img_dir, transform=transforms.ToTensor()):
         self.img_labels = pd.read_csv(annotations_file)
         self.img_dir = img_dir
         self.transform = transform
-        self.target_transform = target_transform
 
     def __len__(self):
         return len(self.img_labels)
 
     def __getitem__(self, idx):
         img_path = os.path.join(self.img_dir, self.img_labels.iloc[idx, 0])
-        image = read_image(img_path) / 255 
-        #print(image.float().size())
+        image = cv.imread(img_path, cv.IMREAD_COLOR)
         steering = self.img_labels.iloc[idx, 1].astype(np.float32)
         throttle = self.img_labels.iloc[idx, 2].astype(np.float32)
         if self.transform:
             image = self.transform(image)
-        #if self.target_transform:
-        #    label = self.target_transform(label)
         return image.float(), steering, throttle
 
 
@@ -55,33 +48,27 @@ def train(dataloader, model, loss_fn, optimizer):
     
     # Define Training Function
     
-    num_batches = len(dataloader.dataset)
+    size = len(dataloader.dataset)
     model.train()
-    
-    train_loss = 0.0
+    epoch_loss = 0.0
 
-
-    for batch, (X, steering, throttle) in enumerate(dataloader):
-        #Combine steering and throttle into one tensor (2 columns, X rows)
-        y = torch.stack((steering, throttle), -1) 
-        #y = y.float()
-
-        X, y = X.to(DEVICE), y.to(DEVICE)
-        #print("Size X: ", X.size()) # torch.Size([BATCHSIZE, 3, 480, 640])
+    for batch, (image, steering, throttle) in enumerate(dataloader):
+        # Combine steering and throttle into one tensor (2 columns, X rows)
+        target = torch.stack((steering, throttle), -1) 
+        X, y = image.to(DEVICE), target.to(DEVICE)
 
         # Compute prediction error
         pred = model(X)  # forward propagation
-        loss = loss_fn(pred, y)  # compute loss
+        batch_loss = loss_fn(pred, y)  # compute loss
         optimizer.zero_grad()  # zero previous gradient
-        loss.backward()  # back propagatin
+        batch_loss.backward()  # back propagatin
         optimizer.step()  # update parameters
         
-        #if batch % 10 == 0:
-        #    loss, current = loss.item(), batch * len(X)
-        #    print(f"Train Loss: {loss:>7f}")
-        train_loss += loss.item()
-    #print("Average train loss: ", statistics.mean(train_loss))
-    return train_loss/num_batches
+        batch_loss, sample_count = batch_loss.item(), (batch + 1) * len(X)
+        epoch_loss = (epoch_loss*batch + batch_loss) / (batch + 1)
+        print(f"loss: {batch_loss:>7f} [{sample_count:>5d}/{size:>5d}]")
+        
+    return epoch_loss
 
         
 
@@ -94,71 +81,48 @@ def test(dataloader, model, loss_fn):
     model.eval()
     test_loss = 0.0
     with torch.no_grad():
-        for X, steering, throttle in dataloader:
-
+        for image, steering, throttle in dataloader:
             #Combine steering and throttle into one tensor (2 columns, X rows)
-            y = torch.stack((steering, throttle), -1) 
-            y = y.float()
-            
-            X, y = X.to(DEVICE), y.to(DEVICE)
-
+            target = torch.stack((steering, throttle), -1) 
+            X, y = image.to(DEVICE), target.to(DEVICE)
             pred = model(X)
-            loss = loss_fn(pred, y).item()
-            #print(f"Test Loss: {loss:>7f}")
-            test_loss += loss
-            #accuracy += (pred.argmax(1) == y).type(torch.float).sum().item()
-    #avg_loss = statistics.mean(test_loss)
-    #print(f"Test Error: Avg loss: {avg_loss:>8f} \n")
+            test_loss += loss_fn(pred, y).item()
+    test_loss /= num_batches
+    print(f"Test Error: {test_loss:>8f} \n")
 
-    return test_loss/num_batches
+    return test_loss
 
-
-
-def graph_data(x, train, test, TITLE, FILENAME):
-
-    # Graph the test and train data
-
-    fig = plt.figure()
-    axs = fig.add_subplot(1,1,1)
-
-    plt.plot(x, train, color='r', label="Training Loss")
-    plt.plot(x, test, color='b', label='Testing Loss')
-    axs.set_ylabel('Loss')
-    axs.set_xlabel('Training Epoch')
-    axs.set_title(TITLE)
-    axs.legend()
-    fig.savefig(FILENAME)
-
-    return
 
 
 
 if __name__ == '__main__':
 
     # Create a dataset
-    annotations_file = "labels.csv"  # the name of the csv file
-    img_dir = "images"  # the name of the folder with all the images in it
+    annotations_file = "FOLDER/labels.csv"  # the name of the csv file
+    img_dir = "FOLDER/images"  # the name of the folder with all the images in it
     collected_data = CustomImageDataset(annotations_file, img_dir)
     print("data length: ", len(collected_data))
 
     # Define the size for train and test data
     train_data_len = len(collected_data)
     train_data_size = round(train_data_len*0.9)
-    test_data_size = round(train_data_len*0.1) 
+    test_data_size = train_data_len - train_data_size 
     print("len and train and test: ", train_data_len, " ", train_data_size, " ", test_data_size)
 
     # Load the datset (split into train and test)
     train_data, test_data = random_split(collected_data, [train_data_size, test_data_size])
-    train_dataloader = DataLoader(train_data, batch_size=50)
-    test_dataloader = DataLoader(test_data, batch_size=50)
-    epochs = 5
-
+    train_dataloader = DataLoader(train_data, batch_size=125)
+    test_dataloader = DataLoader(test_data, batch_size=125)
 
 
     # Initialize the model
-    model = cnn_network.dense_net().to(DEVICE) # choose the architecture class from cnn_network.py
+    # Models that train well:
+    #     lr = 0.001, epochs = 10
+    #     lr = 0.0001, epochs = 15 (epochs = 20 might also work)
+    model = cnn_network.DonkeyNet().to(DEVICE) # choose the architecture class from cnn_network.py
     loss_fn = nn.MSELoss()
-    optimizer = torch.optim.Adam(model.parameters(), lr= 0.0001)
+    optimizer = torch.optim.Adam(model.parameters(), lr= 0.001)
+    epochs = 15
 
     # Optimize the model
     train_loss = []
@@ -184,23 +148,21 @@ if __name__ == '__main__':
 
 
     # create array for x values for plotting train
-    epochs_array = list(range(1, epochs+1))
-    print(epochs_array)
+    epochs_array = list(range(epochs))
 
-    graph_data(epochs_array, train_loss, test_loss, "dense_data2023-02-10-13-41", "dense_data2023-02-10-13-41.jpg")
-
-
-    """
-    # Load an image from the dataset and make a prediction
-    image = read_image('images/200.jpg').to(DEVICE)  # read image to tensor
-    image = (image.float() / 255 ) # convert to float and standardize between 0 and 1
-    print("loaded image after divide and float: ", image.size())
-    image = image.unsqueeze(dim=0) # add an extra dimension that is needed in order to make a prediction
-    print("loaded image after unsqueeze: ", image.size())
-    pred = model(image)
-    print(pred)
-    """
+    # Graph the test and train data
+    fig = plt.figure()
+    axs = fig.add_subplot(1,1,1)
+    plt.plot(epochs_array, train_loss, color='b', label="Training Loss")
+    plt.plot(epochs_array, test_loss, '--', color='orange', label='Testing Loss')
+    axs.set_ylabel('Loss')
+    axs.set_xlabel('Training Epoch')
+    axs.set_title('FOLDER LOCATION DonkeyNet 15 Epochs lr=1e-3')
+    axs.legend()
+    fig.savefig('FOLDER_LOCATION_DonkeyNet_15_epochs_lr_1e_3.png')
 
     # Save the model
-    torch.save(model.state_dict(), "dense_data2023-02-10-13-41.pth")
-    print("Saved PyTorch Model State to data2023-02-10-13-41.pth")
+    torch.save(model.state_dict(), "FOLDER_LOCATION_DonkeyNet_15_epochs_lr_1e_3.pth")
+
+
+    

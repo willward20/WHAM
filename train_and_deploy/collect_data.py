@@ -1,9 +1,6 @@
-##################################################################
-# Program Name: collect_data.py
-# Contributors: 
-# 
-#  
-###################################################################
+
+# Collect training data using bluetooth controller
+# While driving, save images and joystick inputs
 
 #!/usr/bin/python3
 import sys
@@ -22,6 +19,8 @@ from time import time
 os.environ["SDL_VIDEODRIVER"] = "dummy"
 
 # SETUP
+# dummy video driver
+os.environ["SDL_VIDEODRIVER"] = "dummy"
 # load configs
 config_path = os.path.join(sys.path[0], "config.json")
 f = open(config_path)
@@ -35,7 +34,7 @@ servo = kit.servo[0]
 head_led = LED(16)
 tail_led = LED(12)
 # create data storage
-image_dir = os.path.join(sys.path[0], 'data', datetime.now().strftime("%Y%m%d%H%M"), 'images/')
+image_dir = os.path.join(sys.path[0], 'data', datetime.now().strftime("%Y_%m_%d_%H_%M"), 'images/')
 if not os.path.exists(image_dir):
     try:
         os.makedirs(image_dir)
@@ -100,7 +99,7 @@ try:
             frame = cv.resize(frame, (120, 160))
             cv.imwrite(image_dir + str(frame_counts)+'.jpg', frame) # changed frame to gray
             # save labels
-            label = [str(frame_counts)+'.jpg'] + action
+            label = [datetime.now().strftime("%Y_%m_%d_%H_%M_")+str(frame_counts)+'.jpg'] + action
             with open(label_path, 'a+', newline='') as f:
                 writer = csv.writer(f)
                 writer.writerow(label)  # write the data
