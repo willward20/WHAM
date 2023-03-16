@@ -2,5 +2,6 @@
 *.jpg
 __pycache__
 images
-labels.csv
+*.csv
 *.gz
+*.png
