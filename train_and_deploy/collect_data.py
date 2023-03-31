@@ -59,6 +59,7 @@ for i in reversed(range(60)):  # warm up camera
 # init timer, uncomment if you are cuious about frame rate
 start_stamp = time()
 ave_frame_rate = 0.
+start_time=datetime.now().strftime("%Y_%m_%d_%H_%M_")
 
 
 # MAIN
@@ -96,9 +97,9 @@ try:
         print(f"action: {action}")
         if is_recording:
             frame = cv.resize(frame, (120, 160))
-            cv.imwrite(image_dir + datetime.now().strftime("%Y_%m_%d_%H_%M_")+str(frame_counts)+'.jpg', frame) # changed frame to gray
+            cv.imwrite(image_dir + start_time+str(frame_counts)+'.jpg', frame) # changed frame to gray
             # save labels
-            label = [datetime.now().strftime("%Y_%m_%d_%H_%M_")+str(frame_counts)+'.jpg'] + action
+            label = [start_time+str(frame_counts)+'.jpg'] + action
             with open(label_path, 'a+', newline='') as f:
                 writer = csv.writer(f)
                 writer.writerow(label)  # write the data
