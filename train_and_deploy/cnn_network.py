@@ -71,7 +71,7 @@ class DonkeyNet(nn.Module):
         self.conv32 = nn.Conv2d(24, 32, kernel_size=(5, 5), stride=(2, 2))
         self.conv64_5 = nn.Conv2d(32, 64, kernel_size=(5, 5), stride=(2, 2))
         self.conv64_3 = nn.Conv2d(64, 64, kernel_size=(3, 3), stride=(1, 1))
-        self.fc1 = nn.Linear(64*30*30, 128)
+        self.fc1 = nn.Linear(64*8*13, 128)
         self.fc2 = nn.Linear(128, 128)
         self.fc3 = nn.Linear(128, 2)
         self.relu = nn.ReLU()

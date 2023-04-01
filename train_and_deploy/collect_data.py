@@ -20,8 +20,9 @@ data = json.load(f)
 steering_trim = data['steering_trim']
 throttle_lim = data['throttle_trim']
 
+start_time=datetime.now().strftime("%Y-%m-%d-%H-%M")
 # create data storage
-image_dir = 'data' + datetime.now().strftime("%Y-%m-%d-%H-%M") + '/images/'
+image_dir = 'data' +start_time+ '/images/'
 if not os.path.exists(image_dir):
     try:
         os.makedirs(image_dir)
@@ -86,9 +87,9 @@ while True:
     
     if Record_data == 1:
         #TODO change i with a unique id  using uuid
-        cv.imwrite(image_dir + str(i)+'.jpg', frame) # changed frame to gray
+        cv.imwrite(image_dir + f'{start_time}_{str(i)}'+'.jpg', frame) # changed frame to gray
         # save labels
-        label = [str(i)+'.jpg'] + list(action)
+        label = [f'{start_time}_{str(i)}'+'.jpg'] + list(action)
         label_path = os.path.join(os.path.dirname(os.path.dirname(image_dir)), 'labels.csv')
         with open(label_path, 'a+', newline='') as f:
             writer = csv.writer(f)

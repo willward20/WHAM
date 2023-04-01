@@ -154,7 +154,7 @@ def graph_data(x, train, test, TITLE, FILENAME):
 
 
 # Create a dataset
-dir ="data/softball/softball300_sunny/" 
+dir ="data/2023_03_28/" 
 annotations_file = f"{dir}labels.csv"  # the name of the csv file
 img_dir = f"{dir}images"  # the name of the folder with all the images in it
 collected_data = CustomImageDataset(annotations_file, img_dir)
@@ -170,7 +170,7 @@ print("len and train and test: ", train_data_len, " ", train_data_size, " ", tes
 train_data, test_data = random_split(collected_data, [train_data_size, test_data_size])
 train_dataloader = DataLoader(train_data, batch_size=100)
 test_dataloader = DataLoader(test_data, batch_size=100)
-epochs = 20
+epochs = 15
 
 # Initialize the model
 # input_shape = (100, 10, image_size, image_size)
@@ -182,7 +182,7 @@ optimizer = torch.optim.Adam(model.parameters(), lr=0.0001)
 # Optimize the model
 train_loss = []
 test_loss = []
-Title="DonkeyNet_softball300_sunny_20Epochs"
+Title="DonkeyNet_2023_03_28_15epochs_lr_1E-4"
 pbar = tqdm(range(epochs))
 for t in pbar:
     pbar.set_description('epochs {}'.format(t + 1))
