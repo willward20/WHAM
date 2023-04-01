@@ -61,7 +61,7 @@ while True:
 
     #get thorttle and steering values from joysticks.
     pygame.event.pump()
-    throttle = round((pygame.joystick.Joystick(0).get_axis(1)),2) # between -1 (max reverse) and 1 (max forward), rounded to 2 sig figs 
+    throttle = 1#round((pygame.joystick.Joystick(0).get_axis(1)),2) # between -1 (max reverse) and 1 (max forward), rounded to 2 sig figs 
     motor.drive(throttle * throttle_lim) # multiplies speed within range -100 to 100 (or whatever throttle_lim is)
     steer = round((pygame.joystick.Joystick(0).get_axis(3)), 2) # between -1 (left) and 1 (right)
     ang = 90 * (1 + steer) + steering_trim
@@ -95,7 +95,7 @@ while True:
         #cv.imwrite(image_dir + str(i)+'.jpg', frame) # changed frame to gray
         writer.write_file(image_dir + str(i)+'.jpg', frame)
         # save labels
-        label = [str(i)+'.jpg'] + list(action)
+        label = [str(i)+'.jpg'] + list(action)[0]
         label_path = os.path.join(os.path.dirname(os.path.dirname(image_dir)), 'labels.csv')
         with open(label_path, 'a+', newline='') as f:
             writer2 = csv.writer(f)
