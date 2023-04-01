@@ -50,7 +50,8 @@ while True:
     with torch.no_grad():
         pred = model(img_tensor.unsqueeze(dim=0)) # This line adds an extra dimension to the image tensor (print shape before and after to observe this effect)
     #print(pred)
-    steering, throttle = pred[0][0].item(), pred[0][1].item()
+    #steering, throttle = pred[0][0].item(), pred[0][1].item()
+    steering, throttle = pred[0][0].item(), 1
     if throttle * throttle_lim < -100:
         throttle = -1
     print("steering: ", steering, "     throttle: ", throttle)
