@@ -165,7 +165,8 @@ try:
         if is_recording:
             color_frame = cv.resize(color_image, (120, 160))
             depth_frame = cv.resize(depth_image, (120, 160))
-            cv.imwrite(image_dir + datetime.now().strftime("%Y_%m_%d_%H_%M_")+str(frame_counts)+'.jpg', color_frame, depth_frame) # changed frame to gray
+            cv.imwrite(image_dir + datetime.now().strftime("%Y_%m_%d_%H_%M_")+str(frame_counts) + 'color' +'.jpg', color_frame)
+            cv.imwrite(image_dir + datetime.now().strftime("%Y_%m_%d_%H_%M_")+str(frame_counts)+ 'depth' + '.jpg', depth_frame)
             # save labels
             label = [datetime.now().strftime("%Y_%m_%d_%H_%M_")+str(frame_counts)+'.jpg'] + action
             with open(label_path, 'a+', newline='') as f:
