@@ -94,7 +94,7 @@ try:
             ang = 0
         servo.angle = ang
         action = [steer, throttle]
-        print(f"action: {action}")
+        #print(f"action: {action}")
         if is_recording:
             frame = cv.resize(frame, (120, 160))
             cv.imwrite(image_dir + start_time+str(frame_counts)+'.jpg', frame) # changed frame to gray
@@ -106,7 +106,7 @@ try:
         # monitor frame rate
         duration_since_start = time() - start_stamp
         ave_frame_rate = frame_counts / duration_since_start
-        print(f"frame rate: {ave_frame_rate}")
+        #print(f"frame rate: {ave_frame_rate}")
         if cv.waitKey(1)==ord('q'):
             motor.kill()
             cv.destroyAllWindows()

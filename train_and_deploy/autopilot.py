@@ -32,10 +32,9 @@ servo = kit.servo[0]
 head_led = LED(16)
 tail_led = LED(12)
 
-
 model_path = os.path.join(sys.path[0], 'models', 'MODEL.pth')
 to_tensor = transforms.ToTensor()
-model = cnn_network.DonkeyNetwork()
+model = cnn_network.DonkeyNet()
 model.load_state_dict(torch.load(model_path, map_location=torch.device('cpu')))
 # init variables
 throttle, steer = 0., 0.
@@ -89,7 +88,7 @@ try:
         # monitor frame rate
         duration_since_start = time() - start_stamp
         ave_frame_rate = frame_counts / duration_since_start
-        print(f"frame rate: {ave_frame_rate}")
+        #print(f"frame rate: {ave_frame_rate}")
         if cv.waitKey(1)==ord('q'):
             motor.kill()
             cv.destroyAllWindows()
