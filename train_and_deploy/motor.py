@@ -1,52 +1,56 @@
+"""
+This module is supposed to work with Cytron MD20A motor driver and an
+ARRMA MEGA 550 12T brushed DC motor.
+Wiring:
+    MOTOR: RED   -> DRIVER: MA
+    MOTOR: BLACK -> DRIVER: MB
+"""
 import RPi.GPIO as GPIO
-from time import sleep
 
 GPIO.setmode(GPIO.BCM)
 GPIO.setwarnings(False)
 
-#AN2 = 25
-AN1 = 26
-#DIG2 = 23
-DIG1 = 19
+# AN1 = 26
+# DIG1 = 19
+PWM_PIN = 26
+DIR_PIN = 19
 
-#GPIO.setup(AN2, GPIO.OUT)
-GPIO.setup(AN1, GPIO.OUT)
-#GPIO.setup(DIG2, GPIO.OUT)
-GPIO.setup(DIG1, GPIO.OUT)
+GPIO.setup(PWM_PIN, GPIO.OUT)
+GPIO.setup(DIR_PIN, GPIO.OUT)
 
-sleep(1)
+# p1 = GPIO.PWM(AN1, 100)
+pwm = GPIO.PWM(PWM_PIN, 1000)
+pwm.start(0)
 
-p1 = GPIO.PWM(AN1, 100)
-#p2 = GPIO.PWM(AN2, 100)
+# def forward(speed):
+#     GPIO.output(DIR_PIN, GPIO.LOW)
+#     pwm.start(speed)
+#
+# def backward(speed):
+#     GPIO.output(DIR_PIN, GPIO.HIGH)
+#     pwm.start(speed)
 
-def forward(speed):
-    GPIO.output(DIG1, GPIO.LOW)
-    #GPIO.output(DIG2, GPIO.HIGH)
-    p1.start(speed)
-    #p2.start(speed)
-
-def backward(speed):
-    GPIO.output(DIG1, GPIO.HIGH)
-    #GPIO.output(DIG2, GPIO.LOW)
-    p1.start(speed)
-    #p2.start(speed)
-
-def drive(speed):
+def drive(speed=0):
+    """Motor driving function
+    Note: when listen to the joystick, verify the sign of speed.
+    Args:
+        speed: float in range [-100, 100]
+    """
+    assert speed <= 100
+    assert speed >= -100
     if speed > 0:
-        GPIO.output(DIG1, GPIO.HIGH)
-        speed = abs(speed)
-        p1.start(speed)
+        GPIO.output(DIR_PIN, GPIO.LOW)  # forward
+        pwm.ChangeDutyCycle(speed)
     elif speed < 0:
-        GPIO.output(DIG1, GPIO.LOW)
-        speed = abs(speed)
-        p1.start(speed)
+        GPIO.output(DIR_PIN, GPIO.HIGH)  # backward
+        speed = -speed
+        pwm.ChangeDutyCycle(speed)
     else:
-        p1.start(0)
+        pwm.ChangeDutyCycle(0)
 
 def stop():
-    p1.start(0)
-    #p2.start(0)
-"""
-stop()
-GPIO.cleanup()
-"""
+    pwm.ChangeDutyCycle(0)
+
+def kill():
+    stop()
+    GPIO.cleanup
