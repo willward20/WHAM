@@ -13,7 +13,7 @@ from gpiozero import LED
 import json
 import csv
 from datetime import datetime
-import pyrealsense2 as rs
+import pyrealsense2.pyrealsense2 as rs
 from time import time
 import numpy as np
 
