@@ -18,9 +18,6 @@ from time import time
 import numpy as np
 
 
-
-
-
 ## realsense
 # Create a pipeline
 pipeline = rs.pipeline()
@@ -72,9 +69,6 @@ align = rs.align(align_to)
 #realsense
 
 
-
-
-
 # SETUP
 # dummy video driver
 os.environ["SDL_VIDEODRIVER"] = "dummy"
@@ -107,13 +101,6 @@ js = pygame.joystick.Joystick(0)
 throttle, steer = 0., 0.
 is_recording = False
 frame_counts = 0
-# init camera
-cap = cv.VideoCapture(0)
-cap.set(cv.CAP_PROP_FPS, 20)
-for i in reversed(range(60)):  # warm up camera
-    if not i % 20:
-        print(i/20)
-    ret, frame = cap.read()
 # init timer, uncomment if you are cuious about frame rate
 start_stamp = time()
 ave_frame_rate = 0.
@@ -123,7 +110,7 @@ ave_frame_rate = 0.
 try:
     while True:
         frames = pipeline.wait_for_frames()
-        if frame is not None:
+        if frames is not None:
             frame_counts += 1
             aligned_frames = align.process(frames)
             aligned_depth_frame = aligned_frames.get_depth_frame() # aligned_depth_frame is a 640x480 depth image
@@ -168,7 +155,7 @@ try:
             cv.imwrite(image_dir + datetime.now().strftime("%Y_%m_%d_%H_%M_")+str(frame_counts) + 'color' +'.jpg', color_frame)
             cv.imwrite(image_dir + datetime.now().strftime("%Y_%m_%d_%H_%M_")+str(frame_counts)+ 'depth' + '.jpg', depth_frame)
             # save labels
-            label = [datetime.now().strftime("%Y_%m_%d_%H_%M_")+str(frame_counts)+'.jpg'] + action
+            label = [datetime.now().strftime("%Y_%m_%d_%H_%M_")+str(frame_counts)] + action
             with open(label_path, 'a+', newline='') as f:
                 writer = csv.writer(f)
                 writer.writerow(label)  # write the data
