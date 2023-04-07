@@ -57,7 +57,7 @@ class DonkeyNet(nn.Module):
 
     def __init__(self):
         super().__init__()
-        self.conv24 = nn.Conv2d(3, 24, kernel_size=(5, 5), stride=(2, 2))
+        self.conv24 = nn.Conv2d(4, 24, kernel_size=(5, 5), stride=(2, 2))
         self.conv32 = nn.Conv2d(24, 32, kernel_size=(5, 5), stride=(2, 2))
         self.conv64_5 = nn.Conv2d(32, 64, kernel_size=(5, 5), stride=(2, 2))
         self.conv64_3 = nn.Conv2d(64, 64, kernel_size=(3, 3), stride=(1, 1))
@@ -68,7 +68,8 @@ class DonkeyNet(nn.Module):
         self.relu = nn.ReLU()
         self.flatten = nn.Flatten()
 
-    def forward(self, x):               #   300x300                     #  120x160 images
+    def forward(self, x1,x2):               #   300x300                     #  120x160 images
+        x= torch.cat((x1,x2),dim=1)
         x = self.relu(self.conv24(x))  # (300-5)/2+1 = 148     |     (120-5)/2+1 = 58   (160-5)/2+1 = 78
         x = self.relu(self.conv32(x))  # (148-5)/2+1 = 72      |     (58 -5)/2+1 = 27   (78 -5)/2+1 = 37
         x = self.relu(self.conv64_5(x))  # (72-5)/2+1 = 34     |     (27 -5)/2+1 = 12   (37 -5)/2+1 = 17

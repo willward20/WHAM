@@ -5,3 +5,9 @@ images
 *.csv
 *.gz
 *.png
+*cache
+*.so*
+*.cmake
+train_and_deploy/CMakeFiles/
+train_and_deploy/Makefile
+
