@@ -41,15 +41,17 @@ if not found_rgb:
     print("The demo requires Depth camera with Color sensor")
     exit(0)
 
-config.enable_stream(rs.stream.depth, 640, 480, rs.format.z16, 30)
+#config.enable_stream(rs.stream.depth, 640, 480, rs.format.z16, 30)
+config.enable_stream(rs.stream.depth, 424, 240, rs.format.z16, 15)
 
 if device_product_line == 'L500':
-    config.enable_stream(rs.stream.color, 960, 540, rs.format.bgr8, 30)
+    config.enable_stream(rs.stream.color, 160, 120, rs.format.rgb8, 30)
 else:
-    config.enable_stream(rs.stream.color, 640, 480, rs.format.bgr8, 30)
+    config.enable_stream(rs.stream.color, 424, 240, rs.format.bgr8, 15)
 
 # Start streaming
 profile = pipeline.start(config)
+profile.get_device().query_sensors()[1].set_option(rs.option.auto_exposure_priority, 0.0)
 
 # Getting the depth sensor's depth scale (see rs-align example for explanation)
 depth_sensor = profile.get_device().first_depth_sensor()
@@ -152,6 +154,8 @@ try:
         if is_recording:
             color_frame = cv.resize(color_image, (120, 160))
             depth_frame = cv.resize(depth_image, (120, 160))
+            #color_frame = color_image
+            #depth_frame = depth_image
             cv.imwrite(image_dir + datetime.now().strftime("%Y_%m_%d_%H_%M_")+str(frame_counts) + 'color' +'.jpg', color_frame)
             cv.imwrite(image_dir + datetime.now().strftime("%Y_%m_%d_%H_%M_")+str(frame_counts)+ 'depth' + '.jpg', depth_frame)
             # save labels
