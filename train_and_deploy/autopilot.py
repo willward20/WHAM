@@ -90,7 +90,7 @@ servo = kit.servo[0]
 head_led = LED(16)
 tail_led = LED(12)
 
-model_path = os.path.join(sys.path[0], 'models', 'DonkeyNet_2023_04_07_13_34_15epochs_lr_1E-3.pth')
+model_path = os.path.join(sys.path[0], 'models', 'DonkeyNet_2023_04_08_10_16_15epochs_lr_1E-3.pth')
 to_tensor = transforms.ToTensor()
 model = cnn_network.DonkeyNet()
 model.load_state_dict(torch.load(model_path, map_location=torch.device('cpu')))
@@ -145,6 +145,7 @@ try:
             color_frame = aligned_frames.get_color_frame()
             depth_image = np.asanyarray(aligned_depth_frame.get_data())
             color_image = np.asanyarray(color_frame.get_data())
+            depth_image = cv.applyColorMap(cv.convertScaleAbs(depth_image, alpha=0.03), cv.COLORMAP_JET)
             ##lines below will blur out background after a given distance, which is around 13.76m for us (max distance between buckets)
             #grey_color = 153
             #depth_image_3d = np.dstack((depth_image,depth_image,depth_image)) #depth image is 1 channel, color is 3 channels
@@ -160,11 +161,17 @@ try:
             
             
         # predict steer and throttle
+        print(f"data type of color: ${color_image.dtype} \ndata type of depth: ${depth_image.dtype}")
+        color_image = cv.resize(color_image, (120,160))
+        depth_image = cv.resize(depth_image, (120, 160))
         color_tensor = to_tensor(color_image)
-        print(color_image.shape, depth_image.shape)
+        #print(color_image.shape, depth_image.shape)
         depth_tensor = to_tensor(depth_image)
-        
-        pred_steer, pred_throttle = model(img_tensor[None, :], depth_tensor[None, :]).squeeze()
+        #depth_image = (depth_image / 256).astype(np.uint8)
+        #depth_tensor = torch.from_numpy(depth_image)
+        print(color_tensor.shape, depth_tensor.shape)
+
+        pred_steer, pred_throttle = model(color_tensor[None, :], depth_tensor[None, :]).squeeze()
         steer = float(pred_steer)
         throttle = float(pred_throttle)
         if throttle >= 1:  # predicted throttle may over the limit
@@ -196,3 +203,4 @@ except KeyboardInterrupt:
     tail_led.off()
     cv.destroyAllWindows()
     sys.exit()
+

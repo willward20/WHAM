@@ -14,9 +14,9 @@ import json
 import csv
 from datetime import datetime
 import pyrealsense2.pyrealsense2 as rs
-from time import time
+from time import time, sleep
 import numpy as np
-
+from pygame.locals import *
 
 ## realsense
 # Create a pipeline
@@ -98,6 +98,7 @@ label_path = os.path.join(os.path.dirname(os.path.dirname(image_dir)), 'labels.c
 # init controller
 pygame.display.init()
 pygame.joystick.init()
+sleep(2)
 js = pygame.joystick.Joystick(0)
 # init variables
 throttle, steer = 0., 0.
@@ -105,7 +106,9 @@ is_recording = False
 frame_counts = 0
 # init timer, uncomment if you are cuious about frame rate
 start_stamp = time()
+start_time=datetime.now().strftime("%Y_%m_%d_%H_%M_")
 ave_frame_rate = 0.
+
 
 
 # MAIN
@@ -118,12 +121,16 @@ try:
             aligned_depth_frame = aligned_frames.get_depth_frame() # aligned_depth_frame is a 640x480 depth image
             color_frame = aligned_frames.get_color_frame()
             depth_image = np.asanyarray(aligned_depth_frame.get_data())
+            #depth_image = (depth_image / 256).astype(np.uint8)
             color_image = np.asanyarray(color_frame.get_data())
+            #depth_image_3d = np.dstack((depth_image,depth_image,depth_image)) #depth image is 1 channel, color is 3 channels
+            #depth_image = cv.applyColorMap(cv.convertScaleAbs(depth_image, alpha=0.03), cv.COLORMAP_JET)
+            #print(depth_image.shape)
             ##lines below will blur out background after a given distance, which is around 13.76m for us (max distance between buckets)
             #grey_color = 153
             #depth_image_3d = np.dstack((depth_image,depth_image,depth_image)) #depth image is 1 channel, color is 3 channels
             #bg_removed = np.where((depth_image_3d > clipping_distance) | (depth_image_3d <= 0), grey_color, color_image)
-            #depth_colormap = cv.applyColorMap(cv.convertScaleAbs(depth_image, alpha=0.03), cv.COLORMAP_JET)
+            depth_colormap = cv.applyColorMap(cv.convertScaleAbs(depth_image, alpha=0.03), cv.COLORMAP_JET)
         else:
             motor.kill()
             cv.destroyAllWindows()
@@ -156,10 +163,10 @@ try:
             depth_frame = cv.resize(depth_image, (120, 160))
             #color_frame = color_image
             #depth_frame = depth_image
-            cv.imwrite(image_dir + datetime.now().strftime("%Y_%m_%d_%H_%M_")+str(frame_counts) + 'color' +'.jpg', color_frame)
-            cv.imwrite(image_dir + datetime.now().strftime("%Y_%m_%d_%H_%M_")+str(frame_counts)+ 'depth' + '.jpg', depth_frame)
+            cv.imwrite(image_dir + start_time+str(frame_counts) + 'color' +'.jpg', color_frame)
+            cv.imwrite(image_dir + start_time+str(frame_counts)+ 'depth' + '.jpg', depth_frame)
             # save labels
-            label = [datetime.now().strftime("%Y_%m_%d_%H_%M_")+str(frame_counts)] + action
+            label = [datetime.now().start_time+str(frame_counts)] + action
             with open(label_path, 'a+', newline='') as f:
                 writer = csv.writer(f)
                 writer.writerow(label)  # write the data
