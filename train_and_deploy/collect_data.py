@@ -45,7 +45,7 @@ if not found_rgb:
 config.enable_stream(rs.stream.depth, 424, 240, rs.format.z16, 15)
 
 if device_product_line == 'L500':
-    config.enable_stream(rs.stream.color, 160, 120, rs.format.rgb8, 30)
+    config.enable_stream(rs.stream.color, 160, 120, rs.format.bgr8, 30)
 else:
     config.enable_stream(rs.stream.color, 424, 240, rs.format.bgr8, 15)
 
@@ -130,7 +130,7 @@ try:
             #grey_color = 153
             #depth_image_3d = np.dstack((depth_image,depth_image,depth_image)) #depth image is 1 channel, color is 3 channels
             #bg_removed = np.where((depth_image_3d > clipping_distance) | (depth_image_3d <= 0), grey_color, color_image)
-            depth_colormap = cv.applyColorMap(cv.convertScaleAbs(depth_image, alpha=0.03), cv.COLORMAP_JET)
+            depth_image = cv.applyColorMap(cv.convertScaleAbs(depth_image, alpha=0.03), cv.COLORMAP_JET)
         else:
             motor.kill()
             cv.destroyAllWindows()
@@ -159,6 +159,7 @@ try:
         action = [steer, throttle]
         print(f"action: {action}")
         if is_recording:
+            #frame_counts+=1
             color_frame = cv.resize(color_image, (120, 160))
             depth_frame = cv.resize(depth_image, (120, 160))
             #color_frame = color_image
@@ -166,7 +167,7 @@ try:
             cv.imwrite(image_dir + start_time+str(frame_counts) + 'color' +'.jpg', color_frame)
             cv.imwrite(image_dir + start_time+str(frame_counts)+ 'depth' + '.jpg', depth_frame)
             # save labels
-            label = [datetime.now().start_time+str(frame_counts)] + action
+            label = [start_time+str(frame_counts)] + action
             with open(label_path, 'a+', newline='') as f:
                 writer = csv.writer(f)
                 writer.writerow(label)  # write the data
