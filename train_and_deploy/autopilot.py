@@ -21,6 +21,16 @@ import torch.nn as nn
 from torchvision import transforms
 import cnn_network
 
+# Check to see if startup is working
+from os.path import expanduser
+import datetime
+
+file = open(expanduser("~") + '/i_was_created.txt', 'w')
+file.write("This LinuxShellTips Tutorial Actually worked!\n" + str(datetime.datetime.now()))
+file.close()
+
+
+
 ## realsense
 # Create a pipeline
 pipeline = rs.pipeline()
