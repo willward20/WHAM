@@ -155,10 +155,11 @@ try:
         print(f"action: {action}")
         if is_recording:
             #frame_counts+=1
-            color_frame = cv.resize(color_image, (120, 160))
-            depth_frame = cv.resize(depth_image, (120, 160))
+            #color_frame = cv.resize(color_image, (120, 160))
+            #depth_frame = cv.resize(depth_image, (120, 160))
             #color_frame = color_image
             #depth_frame = depth_image
+            bg_removed = cv.resize(bg_removed, (120,160))
             cv.imwrite(image_dir + start_time+str(frame_counts) +'.jpg', bg_removed)
             # save labels
             label = [start_time+str(frame_counts)] + action
