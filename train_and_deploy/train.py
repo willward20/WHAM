@@ -49,7 +49,7 @@ class CustomImageDataset(Dataset):
 
     def __getitem__(self, idx):
         img_path = os.path.join(self.img_dir, self.img_labels.iloc[idx, 0])
-        image = read_image(img_path)/ 255
+        image = read_image(f"{img_path}depth.jpg")/ 255
         # image = fn.resize(image, size=[20])
         # print(image.size())
         # image = image/255
@@ -154,7 +154,7 @@ def graph_data(x, train, test, TITLE, FILENAME):
 
 
 # Create a dataset
-dir ="data/2023_03_28/" 
+dir ="data/2023_04_11_11_35_depth/" 
 annotations_file = f"{dir}labels.csv"  # the name of the csv file
 img_dir = f"{dir}images"  # the name of the folder with all the images in it
 collected_data = CustomImageDataset(annotations_file, img_dir)
@@ -170,8 +170,8 @@ print("len and train and test: ", train_data_len, " ", train_data_size, " ", tes
 train_data, test_data = random_split(collected_data, [train_data_size, test_data_size])
 train_dataloader = DataLoader(train_data, batch_size=100)
 test_dataloader = DataLoader(test_data, batch_size=100)
-epochs = 15
-
+epochs = 20
+epoch_check = [12,15,20]
 # Initialize the model
 # input_shape = (100, 10, image_size, image_size)
 model = DonkeyNet().to(device)
@@ -182,7 +182,7 @@ optimizer = torch.optim.Adam(model.parameters(), lr=0.0001)
 # Optimize the model
 train_loss = []
 test_loss = []
-Title="DonkeyNet_2023_03_28_15epochs_lr_1E-4"
+Title="DepthDonkeyNet_2023_04_11_11_35_"
 pbar = tqdm(range(epochs))
 for t in pbar:
     pbar.set_description('epochs {}'.format(t + 1))
@@ -194,6 +194,8 @@ for t in pbar:
         # save values
         train_loss.append(training_loss)
         test_loss.append(testing_loss)
+        if t+1 in epoch_check:
+            torch.save(model.state_dict(), f"{Title}{t+1}.pth")
     except Exception as e:
         print(e)
 

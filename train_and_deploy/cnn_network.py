@@ -78,6 +78,7 @@ class DonkeyNet(nn.Module):
         self.flatten = nn.Flatten()
 
     def forward(self, x):
+        # x=torch.cat((x1,x2),dim=1)
         x = self.relu(self.conv24(x))  # (300-5)/2+1 = 148
         x = self.relu(self.conv32(x))  # (148-5)/2+1 = 72
         x = self.relu(self.conv64_5(x))  # (72-5)/2+1 = 34

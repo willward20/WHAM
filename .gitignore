@@ -5,4 +5,7 @@
 /train_and_deploy/size20_resnet18_01-27-14-17.jpg
 /train_and_deploy/size20_cnn_01-27-14-17.jpg
 /train_and_deploy/data*
+/train_and_deploy/2023_04_01_08_30/
+/train_and_deploy/data/
 /train_and_deploy/duplicate_mover.py
+/train_and_deploy/*.jpg
