@@ -58,7 +58,7 @@ if not found_rgb:
 config.enable_stream(rs.stream.depth, 424, 240, rs.format.z16, 15)
 
 if device_product_line == 'L500':
-    config.enable_stream(rs.stream.color, 160, 120, rs.format.rgb8, 30)
+    config.enable_stream(rs.stream.color, 160, 120, rs.format.bgr8, 30)
 else:
     config.enable_stream(rs.stream.color, 424, 240, rs.format.bgr8, 15)
 
