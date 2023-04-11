@@ -58,7 +58,7 @@ if not found_rgb:
 config.enable_stream(rs.stream.depth, 424, 240, rs.format.z16, 15)
 
 if device_product_line == 'L500':
-    config.enable_stream(rs.stream.color, 160, 120, rs.format.bgr8, 30)
+    config.enable_stream(rs.stream.color, 160, 120, rs.format.rgb8, 30)
 else:
     config.enable_stream(rs.stream.color, 424, 240, rs.format.bgr8, 15)
 
@@ -100,7 +100,7 @@ servo = kit.servo[0]
 head_led = LED(16)
 tail_led = LED(12)
 
-model_path = os.path.join(sys.path[0], 'models', 'DonkeyNet_2023_04_08_10_16_15epochs_lr_1E-3.pth')
+model_path = os.path.join(sys.path[0], 'models', 'DonkeyNet_2023_04_11_11_35_15epochs_lr_1E-3.pth')
 to_tensor = transforms.ToTensor()
 model = cnn_network.DonkeyNet()
 model.load_state_dict(torch.load(model_path, map_location=torch.device('cpu')))
@@ -124,14 +124,14 @@ start_stamp = time()
 ave_frame_rate = 0.
 
 # create data storage
-image_dir = os.path.join(sys.path[0], 'data', datetime.now().strftime("%Y_%m_%d_%H_%M"), 'images/')
-if not os.path.exists(image_dir):
-    try:
-        os.makedirs(image_dir)
-    except OSError as e:
-        if e.errno != errno.EEXIST:
-            raise
-label_path = os.path.join(os.path.dirname(os.path.dirname(image_dir)), 'labels.csv')
+#image_dir = os.path.join(sys.path[0], 'data', datetime.now().strftime("%Y_%m_%d_%H_%M"), 'images/')
+#if not os.path.exists(image_dir):
+#    try:
+#        os.makedirs(image_dir)
+#    except OSError as e:
+#        if e.errno != errno.EEXIST:
+#            raise
+#label_path = os.path.join(os.path.dirname(os.path.dirname(image_dir)), 'labels.csv')
 
 
 # init variables
@@ -155,10 +155,12 @@ try:
             color_frame = aligned_frames.get_color_frame()
             depth_image = np.asanyarray(aligned_depth_frame.get_data())
             color_image = np.asanyarray(color_frame.get_data())
+            depth_image = cv.applyColorMap(cv.convertScaleAbs(depth_image, alpha=0.03), cv.COLORMAP_JET)
             ##lines below will blur out background after a given distance, which is around 13.76m for us (max distance between buckets)
-            grey_color = 153
-            depth_image_3d = np.dstack((depth_image,depth_image,depth_image)) #depth image is 1 channel, color is 3 channels
-            bg_removed = np.where((depth_image_3d > clipping_distance) | (depth_image_3d <= 0), grey_color, color_image)
+            #grey_color = 153
+            #depth_image_3d = np.dstack((depth_image,depth_image,depth_image)) #depth image is 1 channel, color is 3 channels
+            #bg_removed = np.where((depth_image_3d > clipping_distance) | (depth_image_3d <= 0), grey_color, color_image)
+            #depth_colormap = cv.applyColorMap(cv.convertScaleAbs(depth_image, alpha=0.03), cv.COLORMAP_JET)
         else:
             motor.kill()
             head_led.off()
@@ -166,10 +168,20 @@ try:
             cv.destroyAllWindows()
             sys.exit()
             
-        bg_removed = cv.resize(bg_removed, (120,160))
-        bg_tensor = to_tensor(bg_removed)
+            
+            
+        # predict steer and throttle
+        #print(f"data type of color: ${color_image.dtype} \ndata type of depth: ${depth_image.dtype}")
+        color_image = cv.resize(color_image, (120,160))
+        depth_image = cv.resize(depth_image, (120, 160))
+        color_tensor = to_tensor(color_image)
+        #print(color_image.shape, depth_image.shape)
+        depth_tensor = to_tensor(depth_image)
+        #depth_image = (depth_image / 256).astype(np.uint8)
+        #depth_tensor = torch.from_numpy(depth_image)
+        #print(color_tensor.shape, depth_tensor.shape)
 
-        pred_steer, pred_throttle = model(bg_tensor[None, :]).squeeze()
+        pred_steer, pred_throttle = model(color_tensor[None, :], depth_tensor[None, :]).squeeze()
         steer = float(pred_steer)
         throttle = float(pred_throttle)
         if throttle >= 1:  # predicted throttle may over the limit
@@ -184,11 +196,11 @@ try:
             ang = 0
         servo.angle = ang
         action = [steer, throttle]
-        print(f"action: {action}")
+        #print(f"action: {action}")
         # monitor frame rate
         duration_since_start = time() - start_stamp
         ave_frame_rate = frame_counts / duration_since_start
-        print(f"frame rate: {ave_frame_rate}")
+        #print(f"frame rate: {ave_frame_rate}")
         if cv.waitKey(1)==ord('q'):
             motor.kill()
             cv.destroyAllWindows()
@@ -201,4 +213,3 @@ except KeyboardInterrupt:
     tail_led.off()
     cv.destroyAllWindows()
     sys.exit()
-
