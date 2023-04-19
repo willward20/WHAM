@@ -66,9 +66,10 @@ start_time=datetime.now().strftime("%Y_%m_%d_%H_%M_")
 try:
     while True:
         ret, frame = cap.read()
-        if frame is not None:
+        if ret:
             frame_counts += 1
         else:
+            print("No image received!")
             motor.kill()
             cv.destroyAllWindows()
             pygame.quit()
@@ -76,23 +77,20 @@ try:
         for e in pygame.event.get():
             if e.type == pygame.JOYAXISMOTION:
                 steer = -js.get_axis(3)  # steer_input: -1: left, 1: right
+                ang = 90 * (1 + steer) + steering_trim
+                if ang > 180:
+                    ang = 180
+                elif ang < 0:
+                    ang = 0
+                servo.angle = ang
+                motor.drive(throttle_percent)  # apply throttle limit
+                print(f"steer axis value: {steer}, throttle: {throttle_percent}")
             elif e.type == pygame.JOYBUTTONDOWN:
-                if pygame.joystick.Joystick(0).get_button(0):
+                if js.get_button(0):
                     is_recording = not is_recording
                     head_led.toggle()
                     tail_led.toggle()
-                    if is_recording:
-                        print("Recording data")
-                    else:
-                        print("Stopping data logging")
-        ang = 90 * (1 + steer) + steering_trim
-        if ang > 180:
-            ang = 180
-        elif ang < 0:
-            ang = 0
-        servo.angle = ang
-        motor.drive(throttle_percent)  # apply throttle limit
-        print(f"steer axis value: {steer}, throttle: {throttle_percent}")
+                    print(f"Recording {is_recording}")
         if is_recording:
             frame = cv.resize(frame, (120, 160))
             cv.imwrite(image_dir + start_time+str(frame_counts)+'.jpg', frame) # changed frame to gray
