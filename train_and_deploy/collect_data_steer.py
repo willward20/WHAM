@@ -68,42 +68,42 @@ try:
         ret, frame = cap.read()
         if ret:
             frame_counts += 1
+            for e in pygame.event.get():
+                if e.type == pygame.JOYAXISMOTION:
+                    steer = -js.get_axis(3)  # steer_input: -1: left, 1: right
+                    ang = 90 * (1 + steer) + steering_trim
+                    if ang > 180:
+                        ang = 180
+                    elif ang < 0:
+                        ang = 0
+                    servo.angle = ang
+                    motor.drive(throttle_percent)  # apply throttle limit
+                elif e.type == pygame.JOYBUTTONDOWN:
+                    if js.get_button(0):
+                        is_recording = not is_recording
+                        head_led.toggle()
+                        tail_led.toggle()
+                        print(f"Recording {is_recording}")
+            print(f"steer axis value: {steer}, throttle: {throttle_percent}")
+            if is_recording:
+                frame = cv.resize(frame, (120, 160))
+                cv.imwrite(image_dir + start_time+str(frame_counts)+'.jpg', frame) # changed frame to gray
+                # save labels
+                label = [start_time+str(frame_counts)+'.jpg'] + [steer]
+                with open(label_path, 'a+', newline='') as f:
+                    writer = csv.writer(f)
+                    writer.writerow(label)  # write the data
+            # monitor frame rate
+            # duration_since_start = time() - start_stamp
+            # ave_frame_rate = frame_counts / duration_since_start
+            # print(f"frame rate: {ave_frame_rate}")
+            if cv.waitKey(1)==ord('q'):
+                motor.kill()
+                cv.destroyAllWindows()
+                pygame.quit()
+                sys.exit()
         else:
             print("No image received!")
-            motor.kill()
-            cv.destroyAllWindows()
-            pygame.quit()
-            sys.exit()
-        for e in pygame.event.get():
-            if e.type == pygame.JOYAXISMOTION:
-                steer = -js.get_axis(3)  # steer_input: -1: left, 1: right
-                ang = 90 * (1 + steer) + steering_trim
-                if ang > 180:
-                    ang = 180
-                elif ang < 0:
-                    ang = 0
-                servo.angle = ang
-                motor.drive(throttle_percent)  # apply throttle limit
-                print(f"steer axis value: {steer}, throttle: {throttle_percent}")
-            elif e.type == pygame.JOYBUTTONDOWN:
-                if js.get_button(0):
-                    is_recording = not is_recording
-                    head_led.toggle()
-                    tail_led.toggle()
-                    print(f"Recording {is_recording}")
-        if is_recording:
-            frame = cv.resize(frame, (120, 160))
-            cv.imwrite(image_dir + start_time+str(frame_counts)+'.jpg', frame) # changed frame to gray
-            # save labels
-            label = [start_time+str(frame_counts)+'.jpg'] + [steer]
-            with open(label_path, 'a+', newline='') as f:
-                writer = csv.writer(f)
-                writer.writerow(label)  # write the data
-        # monitor frame rate
-        # duration_since_start = time() - start_stamp
-        # ave_frame_rate = frame_counts / duration_since_start
-        # print(f"frame rate: {ave_frame_rate}")
-        if cv.waitKey(1)==ord('q'):
             motor.kill()
             cv.destroyAllWindows()
             pygame.quit()
