@@ -64,7 +64,7 @@ class DonkeyNet(nn.Module):
 
         self.fc1 = nn.Linear(64*8*13, 128)  # (64*30*30, 128) for 300x300 images
         self.fc2 = nn.Linear(128, 128)
-        self.fc3 = nn.Linear(128, 2)
+        self.fc3 = nn.Linear(128, 1)
         self.relu = nn.ReLU()
         self.flatten = nn.Flatten()
 
