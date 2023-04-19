@@ -92,7 +92,7 @@ try:
             ang = 0
         servo.angle = ang
         motor.drive(throttle_percent)  # apply throttle limit
-        print(f"steer axis value: {stee}, throttle: {throttle_percent}")
+        print(f"steer axis value: {steer}, throttle: {throttle_percent}")
         if is_recording:
             frame = cv.resize(frame, (120, 160))
             cv.imwrite(image_dir + start_time+str(frame_counts)+'.jpg', frame) # changed frame to gray
