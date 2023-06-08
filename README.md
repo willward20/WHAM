@@ -24,7 +24,11 @@ After testing several variations of CNN architectures, we had the most success w
 - The event runs regardless of the weather
 - Points are earned for clearing each obstacle and crossing the finish line
 
-
+## Autonomous Vehicle Performance
+**I'm going to add some YouTube video links here to show how the performance of the car varied due to weather conditions and training parameters.**
+- videos from before the competition (outside on rainy days, and inside models)
+- videos from NRC (outdoors fail)
+- videos from the ASGC challenge (winning run, and a bad run too) -- signficant to note that (1) the competition was shaded and (2) we did not train with the yellow bucket. 
 
 ## Project Conclusions
 We built an autonomous ground vehicle using a modified RC car, a Raspberry Pi, and a vision-based neural network. We can connect a bluetooth joystick with the car to engage the throttle, adjust the steering, and record data for neural network training: camera images and user joystick input. After collecting driving data on a course, we can train the parameters of a convolutional neural network to reduce the loss between predictions and ground truth values. Finally, we can import the trained parameters into a neural network autopilot file that autonomously controls the steering and throttle of the vehicle when camera images are received. The autopilot performs well when operating indoors or under a shaded area outside. However, when driving outside in the sun, the performance accuracy decreased dramatically.
@@ -36,10 +40,11 @@ While we found a neural network architecture that produced functional models, it
 
 
 ## Important Links 
+- [Successful Autopilot Performance](https://www.youtube.com/watch?v=aOQVNasl_Vw)
 - [National Robotics Challenge](https://www.thenrc.org/)
 - [Arkansas Space Grant Consortium](https://arkansasspacegrant.org/)
 - [Donkey Car API](https://docs.donkeycar.com/) (inspired this project)
-- [Donkey Car CNN archutecture: fastai](https://github.com/autorope/donkeycar/blob/main/donkeycar/parts/fastai.py)
+- [Donkey Car CNN architecture: fastai](https://github.com/autorope/donkeycar/blob/main/donkeycar/parts/fastai.py)
 
 ## Contributors 
 - [Austin Miller](https://github.com/amillertime)
