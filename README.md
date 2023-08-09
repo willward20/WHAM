@@ -5,29 +5,18 @@
 ## Project Overview
 Our team designed a small autonomous vehicle to compete in two robotics competitions: (1) the Autonomous Vehicle Challenge at the 2023 [National Robotics Challenge](https://www.thenrc.org/) (NRC) and (2) the Intelligent Vehicle Challenge at the 2023 [Arkansas Space Grant Consortium](https://arkansasspacegrant.org/) (ASGC) Symposium. To earn points in both competitions, the robot needed to autonomously navigate through an obstacle course by driving around five multi-colored bucket waypoints, driving under a small arch, and driving over a ramp. An image of the course layout provided by 2023 NRC contest manual is shown above.
 
-We designed our autonomous system using vision-based supervised machine learning, inspired by the open-source API [Donkey Car](https://docs.donkeycar.com/). To teach our robot to navigate, we first manually drive the vehicle around the obstacle course using a wireless controller. The robot records two sets of data while driving: (1) images captured by a mounted camera and (2) the user's driving commands (these are paired with each image as truth label). After driving the car for 10-15 laps, we optimize a Convolutional Neural Network (CNN) using the recorded data. Through an iterative training process, the CNN identifies patterns between what the robot sees in each image and what driving command the user sends to the vehicle. Then, when the CNN receives a new set of image data, it predicts the driving commands for each image. Once the CNN's predictions reach an acceptable level of accuracy, we test the autopilot algorithm live on the course, allowing the trained network to drive the robot autonomously.
+We designed our autonomous system using vision-based supervised machine learning, inspired by the open-source API [Donkey Car](https://docs.donkeycar.com/), which we had [great success training](https://www.youtube.com/watch?v=tqUgNBKdwrU) with in a pervious project. To teach our robot to navigate, we first manually drive the vehicle around the obstacle course using a wireless controller. The robot records two sets of data while driving: (1) images captured by a mounted camera and (2) the user's driving commands (these are paired with each image as truth label). After driving the car for 10-15 laps, we optimize a Convolutional Neural Network (CNN) using the recorded data. Through an iterative training process, the CNN identifies patterns between what the robot sees in each image and what driving command the user sends to the vehicle. Then, when the CNN receives a new set of image data, it predicts the driving commands for each image. Once the CNN's predictions reach an acceptable level of accuracy, we test the autopilot algorithm live on the course, allowing the trained network to drive the robot autonomously.
 
+## Repository Contents
 This `train_and_deploy` folder contains all of the software for our autonomous vehicle, including:
 - a [config.json](https://github.com/willward20/WHAM/blob/main/train_and_deploy/config.json) file that limits the vehicle's maximum throttle and defines the vehicle's steering trim;
 - [motor.py](https://github.com/willward20/WHAM/blob/main/train_and_deploy/motor.py) and [servo.py](https://github.com/willward20/WHAM/blob/main/train_and_deploy/servo.py) scripts that contain functions for initializing and deploying the vehicle's motor/motor driver and steering servo/PWM board;
 - a [collect_data.py](https://github.com/willward20/WHAM/blob/main/train_and_deploy/collect_data.py) script that is used to manually drive the vehicle with a wireless controller while collecting steering, throttle, and camera data; 
 - a [train.py](https://github.com/willward20/WHAM/blob/main/train_and_deploy/train.py) script that trains a CNN using PyTorch and generates a .pth autopilot file containing the trained parameters; 
 - an [autopilot.py](https://github.com/willward20/WHAM/blob/main/train_and_deploy/autopilot.py) script that drives the vehicle autonomously using a .pth autopilot file; 
-- and a [cnn_network.py](https://github.com/willward20/WHAM/blob/main/train_and_deploy/cnn_network.py) file that defines the neural network architectures accessed by the train.py and autopilot.py scripts. 
+- and a [cnn_network.py](https://github.com/willward20/WHAM/blob/main/train_and_deploy/cnn_network.py) file that defines the neural network architectures accessed by the train.py and autopilot.py scripts.
 
-
-## Competition Rules 
-- The maximum vehicle size was 24" x 24" x 24".
-- The vehicle must be fully autonomous and self-contained.
-- Everything necessary for the vehicle naviguation, processing, sensing must be attached.
-- No transmission or communication is allowed, except to receive GPS signals. 
-- No tether to a laptop or a device is allowed.
-- The vehicle must be started with a physical button.
-- Each team is allowed 3 attempts to earn points.
-- The event runs regardless of the weather.
-- Points are earned for clearing each obstacle and crossing the finish line.
-
-These rules applied to both the NRC and the ASGC challenges. 
+For more information about the project, see our [final_presentation.pdf](https://github.com/willward20/WHAM/blob/main/final_presentation.pdf). And be sure to check out our [wiki](https://github.com/willward20/WHAM/wiki) pages for information about the competition, using the robot, configuring the raspberry pi, and resolving various issues.
 
 
 ## Convolutional Neural Network
@@ -36,15 +25,9 @@ After testing several variations of CNN architectures, we had the most success w
 <img src="https://github.com/willward20/WHAM/blob/main/media/cnn_architecture.png"/>
 
 
-## Hardware Design
-**add information here**
-
-
 ## Autonomous Vehicle Performance
-**I'm going to add some YouTube video links here to show how the performance of the car varied due to weather conditions and training parameters.**
-- videos from before the competition (outside on rainy days, and inside models)
-- videos from NRC (outdoors fail)
-- videos from the ASGC challenge (winning run, and a bad run too) -- signficant to note that (1) the competition was shaded and (2) we did not train with the yellow bucket. 
+- [Analysis of Autopilot Performance at NRC and ASGC](https://www.youtube.com/watch?v=SQS1NwXQrBU)
+- [Successful Autopilot Performance at ASGC Challenge](https://www.youtube.com/watch?v=aOQVNasl_Vw)
 
 
 ## Project Conclusions
@@ -63,12 +46,6 @@ While we found a neural network architecture that produced functional models, it
 - [Donkey Car API](https://docs.donkeycar.com/) (inspired this project)
 - [Donkey Car CNN architecture: fastai](https://github.com/autorope/donkeycar/blob/main/donkeycar/parts/fastai.py)
 
-## YouTube Videos
-- [Training Using Donkey Car API](https://www.youtube.com/watch?v=tqUgNBKdwrU)
-- [Analysis of Autopilot Performance at NRC and ASGC](https://www.youtube.com/watch?v=SQS1NwXQrBU)
-- [Successful Autopilot Performance at ASGC Challenge](https://www.youtube.com/watch?v=aOQVNasl_Vw)
-- [Best Attempt at the NRC Competition](TBD)
-
 
 ## Contributors 
 We completed this design project during our senior year at the University of Central Arkansas. In May 2023, we each graduated with a Bachelor's of Science in [Engineering Physics](https://uca.edu/physics/engineering-physics/). 
@@ -77,19 +54,5 @@ We completed this design project during our senior year at the University of Cen
 - [Nadira Amadou](https://github.com/nadira30)
 - [Will Ward](https://github.com/willward20)
 
-
 ## Advisor
 - [Dr. Lin Zhang](https://github.com/linzhangUCA) (Thank you for your constant support and enthusiasm!)
-
-
-## Team Checklist
-- [x] Set up the raspberri pi and software installation
-- [x] Set up Github page
-- [x] Order part list
-- [x] Mechanical Design
-- [x] Document the competition Requirements
-- [x] Donkey Car software training and model
-- [x] Build neural networks for the wham car
-- [x] Compare Performance of Donkey to WHAM! car
-- [X] Build Video Stabilizer
-- [X] Determine and build program for controller type (keyboard or ps4)
