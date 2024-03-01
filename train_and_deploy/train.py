@@ -14,6 +14,7 @@ from torchvision import transforms
 import matplotlib.pyplot as plt
 import cnn_network
 import cv2 as cv
+from tqdm import tqdm
 
 
 # Designate processing unit for CNN training
@@ -66,7 +67,6 @@ def train(dataloader, model, loss_fn, optimizer):
         
         batch_loss, sample_count = batch_loss.item(), (batch + 1) * len(X)
         epoch_loss = (epoch_loss*batch + batch_loss) / (batch + 1)
-        print(f"loss: {batch_loss:>7f} [{sample_count:>5d}/{size:>5d}]")
         
     return epoch_loss
 
@@ -88,18 +88,31 @@ def test(dataloader, model, loss_fn):
             pred = model(X)
             test_loss += loss_fn(pred, y).item()
     test_loss /= num_batches
-    print(f"Test Error: {test_loss:>8f} \n")
 
     return test_loss
 
+# Graph the test and train data
+def graph_data(x, train, test, TITLE, FILENAME):
+    fig = plt.figure()
+    axs = fig.add_subplot(1, 1, 1)
 
+    plt.plot(x, train, color='b', label="Training Loss")
+    plt.plot(x, test, color='r', label='Testing Loss')
+    axs.set_ylabel('Loss')
+    axs.set_xlabel('Training Epoch')
+    axs.set_title(TITLE)
+    axs.legend()
+    fig.savefig(FILENAME)
+
+    return
 
 
 if __name__ == '__main__':
 
     # Create a dataset
-    annotations_file = "FOLDER/labels.csv"  # the name of the csv file
-    img_dir = "FOLDER/images"  # the name of the folder with all the images in it
+    dir ="FOLDER" 
+    annotations_file = f"{dir}/labels.csv"  # the name of the csv file
+    img_dir = f"{dir}/images"  # the name of the folder with all the images in it
     collected_data = CustomImageDataset(annotations_file, img_dir)
     print("data length: ", len(collected_data))
 
@@ -121,21 +134,29 @@ if __name__ == '__main__':
     #     lr = 0.0001, epochs = 15 (epochs = 20 might also work)
     model = cnn_network.DonkeyNet().to(DEVICE) # choose the architecture class from cnn_network.py
     loss_fn = nn.MSELoss()
-    optimizer = torch.optim.Adam(model.parameters(), lr= 0.001)
-    epochs = 15
+    learning_rate = 0.001
+    optimizer = torch.optim.Adam(model.parameters(), lr= learning_rate)
+    epochs = 2
 
     # Optimize the model
     train_loss = []
     test_loss = []
-    for t in range(epochs):
-        print(f"Epoch {t+1}\n-------------------------------")
-        training_loss = train(train_dataloader, model, loss_fn, optimizer)
-        testing_loss = test(test_dataloader, model, loss_fn)
-        print("average training loss: ", training_loss)
-        print("average testing loss: ", testing_loss)
-        # save values
-        train_loss.append(training_loss)
-        test_loss.append(testing_loss)   
+    folder_name= dir.split("/")[1]
+    Title=f"{folder_name}_DonkeyNet_{epochs}_epochs_lr_{learning_rate}"
+    pbar = tqdm(range(epochs))
+    for t in pbar:
+        pbar.set_description('epochs {}'.format(t + 1))
+        try:
+            training_loss = train(train_dataloader, model, loss_fn, optimizer)
+            testing_loss = test(test_dataloader, model, loss_fn)
+            print("average training loss: ", training_loss)
+            print("average testing loss: ", testing_loss)
+            # save values
+            train_loss.append(training_loss)
+            test_loss.append(testing_loss)
+
+        except Exception as e:
+            print(e)  
 
     print(f"Optimize Done!")
 
@@ -143,26 +164,19 @@ if __name__ == '__main__':
     #print("final test lost: ", test_loss[-1])
     len_train_loss = len(train_loss)
     len_test_loss = len(test_loss)
-    print("Train loss length: ", len_train_loss)
-    print("Test loss length: ", len_test_loss)
+    print("\nTrain loss length: ", len_train_loss)
+    print("\nTest loss length: ", len_test_loss)
 
 
     # create array for x values for plotting train
     epochs_array = list(range(epochs))
 
     # Graph the test and train data
-    fig = plt.figure()
-    axs = fig.add_subplot(1,1,1)
-    plt.plot(epochs_array, train_loss, color='b', label="Training Loss")
-    plt.plot(epochs_array, test_loss, '--', color='orange', label='Testing Loss')
-    axs.set_ylabel('Loss')
-    axs.set_xlabel('Training Epoch')
-    axs.set_title('FOLDER LOCATION DonkeyNet 15 Epochs lr=1e-3')
-    axs.legend()
-    fig.savefig('FOLDER_LOCATION_DonkeyNet_15_epochs_lr_1e_3.png')
+    graph_data(epochs_array, train_loss, test_loss,Title, f"models/{Title}.jpg")
 
     # Save the model
-    torch.save(model.state_dict(), "FOLDER_LOCATION_DonkeyNet_15_epochs_lr_1e_3.pth")
+    torch.save(model.state_dict(), f"models/{Title}.pth")
+    print(f"\nSaved PyTorch Model State to models/{Title}.pth")
 
 
     
